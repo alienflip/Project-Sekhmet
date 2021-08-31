@@ -1,3 +1,3 @@
-# OpenCL-OpenGL
+# OpenCL
 
 Lets go!
