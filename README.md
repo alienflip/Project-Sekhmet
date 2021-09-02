@@ -1,3 +1,3 @@
-# OpenCL
+# Sekhmet
 
 Lets go!
