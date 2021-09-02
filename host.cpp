@@ -4,7 +4,6 @@
 #include <memory.h>
 #include <vector>
 
-
 #define OPENCL_VERSION_1_2  1.2f
 #define OPENCL_VERSION_2_0  2.0f
 
@@ -57,40 +56,14 @@ ocl_args_d_t::~ocl_args_d_t()
 {
     cl_int err = CL_SUCCESS;
 
-    if (kernel)
-    {
-        err = clReleaseKernel(kernel);
-    }
-    if (program)
-    {
-        err = clReleaseProgram(program);
-    }
-    if (srcA)
-    {
-        err = clReleaseMemObject(srcA);
-    }
-    if (srcB)
-    {
-        err = clReleaseMemObject(srcB);
-    }
-    if (dstMem)
-    {
-        err = clReleaseMemObject(dstMem);
-    }
-    if (commandQueue)
-    {
-        err = clReleaseCommandQueue(commandQueue);
-    }
-    if (device)
-    {
-        err = clReleaseDevice(device);
-
-    }
-    if (context)
-    {
-        err = clReleaseContext(context);
-    }
-
+    if (kernel) err = clReleaseKernel(kernel);
+    if (program) err = clReleaseProgram(program);
+    if (srcA) err = clReleaseMemObject(srcA);
+    if (srcB) err = clReleaseMemObject(srcB);
+    if (dstMem) err = clReleaseMemObject(dstMem);
+    if (commandQueue) err = clReleaseCommandQueue(commandQueue);
+    if (device) err = clReleaseDevice(device);
+    if (context) err = clReleaseContext(context);
 }
 
 bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
@@ -100,18 +73,12 @@ bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredP
     bool match = false;
 
     err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err)
-    {
-        return false;
-    }
+    if (CL_SUCCESS != err) return false;
 
     std::vector<char> platformName(stringLength);
 
     err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, stringLength, &platformName[0], NULL);
-    if (CL_SUCCESS != err)
-    {
-        return false;
-    }
+    if (CL_SUCCESS != err) return false;
 
     if (strstr(&platformName[0], preferredPlatform) != 0)
     {
@@ -128,48 +95,27 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
     cl_int err = CL_SUCCESS;
 
     err = clGetPlatformIDs(0, NULL, &numPlatforms);
-    if (CL_SUCCESS != err)
-    {
-        return NULL;
-    }
+    if (CL_SUCCESS != err) return NULL;
 
-
-    if (0 == numPlatforms)
-    {
-        return NULL;
-    }
+    if (0 == numPlatforms) return NULL;
 
     std::vector<cl_platform_id> platforms(numPlatforms);
 
     err = clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
-    if (CL_SUCCESS != err)
-    {
-        return NULL;
-    }
+    if (CL_SUCCESS != err) return NULL;
 
     for (cl_uint i = 0; i < numPlatforms; i++)
     {
         bool match = true;
         cl_uint numDevices = 0;
 
-        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0))
-        {
-            match = CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
-        }
+        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0)) match = CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
 
         if (match)
         {
-
             err = clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
-            if (CL_SUCCESS != err)
-            {
-                LogInfo("   Required device was not found on this platform.\n");
-            }
 
-            if (0 != numDevices)
-            {
-                return platforms[i];
-            }
+            if (0 != numDevices) return platforms[i];
         }
     }
 
@@ -182,61 +128,34 @@ int GetPlatformAndDeviceVersion (cl_platform_id platformId, ocl_args_d_t *ocl)
 
     size_t stringLength = 0;
     err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     std::vector<char> platformVersion(stringLength);
 
     err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, stringLength, &platformVersion[0], NULL);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
-    if (strstr(&platformVersion[0], "OpenCL 2.0") != NULL)
-    {
-        ocl->platformVersion = OPENCL_VERSION_2_0;
-    }
+    if (strstr(&platformVersion[0], "OpenCL 2.0") != NULL) ocl->platformVersion = OPENCL_VERSION_2_0;
 
     err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     std::vector<char> deviceVersion(stringLength);
 
     err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, stringLength, &deviceVersion[0], NULL);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
-    if (strstr(&deviceVersion[0], "OpenCL 2.0") != NULL)
-    {
-        ocl->deviceVersion = OPENCL_VERSION_2_0;
-    }
+    if (strstr(&deviceVersion[0], "OpenCL 2.0") != NULL) ocl->deviceVersion = OPENCL_VERSION_2_0;
 
     err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     std::vector<char> compilerVersion(stringLength);
 
     err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, stringLength, &compilerVersion[0], NULL);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
-    else if (strstr(&compilerVersion[0], "OpenCL C 2.0") != NULL)
-    {
-        ocl->compilerVersion = OPENCL_VERSION_2_0;
-    }
+    else if (strstr(&compilerVersion[0], "OpenCL C 2.0") != NULL) ocl->compilerVersion = OPENCL_VERSION_2_0;
 
     return err;
 }
@@ -257,23 +176,14 @@ int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
     cl_int err = CL_SUCCESS;
 
     cl_platform_id platformId = FindOpenCLPlatform("Intel", deviceType);
-    if (NULL == platformId)
-    {
-        return CL_INVALID_VALUE;
-    }
+    if (NULL == platformId) return CL_INVALID_VALUE;
 
     cl_context_properties contextProperties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0};
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
-    if ((CL_SUCCESS != err) || (NULL == ocl->context))
-    {
-        return err;
-    }
+    if ((CL_SUCCESS != err) || (NULL == ocl->context)) return err;
 
     err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     GetPlatformAndDeviceVersion(platformId, ocl);
 
@@ -291,10 +201,7 @@ int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
     cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
     ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
 #endif
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     return CL_SUCCESS;
 }
@@ -306,16 +213,10 @@ int CreateAndBuildProgram(ocl_args_d_t *ocl)
     char* source = NULL;
     size_t src_size = 0;
     err = ReadSourceFromFile("simple.cl", &source, &src_size);
-    if (CL_SUCCESS != err)
-    {
-        goto Finish;
-    }
+    if (CL_SUCCESS != err) goto Finish;
 
     ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, &err);
-    if (CL_SUCCESS != err)
-    {
-        goto Finish;
-    }
+    if (CL_SUCCESS != err) goto Finish;
 
     err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
     if (CL_SUCCESS != err)
@@ -369,24 +270,15 @@ int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_
 
     // Create first image based on host memory inputA
     ocl->srcA = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputA, &err);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     // Create second image based on host memory inputB
     ocl->srcB = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputB, &err);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     // Create third (output) image based on host memory outputC
     ocl->dstMem = clCreateImage(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, outputC, &err);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
 
     return CL_SUCCESS;
@@ -397,22 +289,13 @@ cl_uint SetKernelArguments(ocl_args_d_t *ocl)
     cl_int err = CL_SUCCESS;
 
     err  =  clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void *)&ocl->srcA);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     err  = clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void *)&ocl->srcB);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     err  = clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void *)&ocl->dstMem);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     return err;
 }
@@ -424,16 +307,10 @@ cl_uint ExecuteAddKernel(ocl_args_d_t *ocl, cl_uint width, cl_uint height)
     size_t globalWorkSize[2] = {width, height};
 
     err = clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     err = clFinish(ocl->commandQueue);
-    if (CL_SUCCESS != err)
-    {
-        return err;
-    }
+    if (CL_SUCCESS != err) return err;
 
     return CL_SUCCESS;
 }
@@ -449,20 +326,14 @@ bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inp
     size_t image_slice_pitch;
     cl_int *resultPtr = (cl_int *)clEnqueueMapImage(ocl->commandQueue, ocl->dstMem, true, CL_MAP_READ, origin, region, &image_row_pitch, &image_slice_pitch, 0, NULL, NULL, &err);
 
-    if (CL_SUCCESS != err)
-    {
-        return false;
-    }
+    if (CL_SUCCESS != err) return false;
 
     err = clFinish(ocl->commandQueue);
 
     unsigned int size = width * height;
     for (unsigned int k = 0; k < size; ++k)
     {
-        if (resultPtr[k] != inputA[k] + inputB[k])
-        {
-            result = false;
-        }
+        if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
 
     err = clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
