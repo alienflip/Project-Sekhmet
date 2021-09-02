@@ -16,6 +16,7 @@
 
 #include <Windows.h>
 
+#pragma region create / destroy boilerplate
 struct ocl_args_d_t
 {
     ocl_args_d_t();
@@ -30,25 +31,25 @@ struct ocl_args_d_t
     float            platformVersion;   // hold the OpenCL platform version (default 1.2)
     float            deviceVersion;     // hold the OpenCL device version (default. 1.2)
     float            compilerVersion;   // hold the device OpenCL C version (default. 1.2)
-    
+
     // Objects that are specific for algorithm implemented in this sample
     cl_mem           srcA;              // hold first source buffer
     cl_mem           srcB;              // hold second source buffer
     cl_mem           dstMem;            // hold destination buffer
 };
 
-ocl_args_d_t::ocl_args_d_t():
-        context(NULL),
-        device(NULL),
-        commandQueue(NULL),
-        program(NULL),
-        kernel(NULL),
-        platformVersion(OPENCL_VERSION_1_2),
-        deviceVersion(OPENCL_VERSION_1_2),
-        compilerVersion(OPENCL_VERSION_1_2),
-        srcA(NULL),
-        srcB(NULL),
-        dstMem(NULL)
+ocl_args_d_t::ocl_args_d_t() :
+    context(NULL),
+    device(NULL),
+    commandQueue(NULL),
+    program(NULL),
+    kernel(NULL),
+    platformVersion(OPENCL_VERSION_1_2),
+    deviceVersion(OPENCL_VERSION_1_2),
+    compilerVersion(OPENCL_VERSION_1_2),
+    srcA(NULL),
+    srcB(NULL),
+    dstMem(NULL)
 {
 }
 
@@ -65,7 +66,8 @@ ocl_args_d_t::~ocl_args_d_t()
     if (device) err = clReleaseDevice(device);
     if (context) err = clReleaseContext(context);
 }
-
+#pragma endregion
+#pragma region device check boilerplate
 bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
 {
     size_t stringLength = 0;
@@ -122,7 +124,7 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
     return NULL;
 }
 
-int GetPlatformAndDeviceVersion (cl_platform_id platformId, ocl_args_d_t *ocl)
+int GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 {
     cl_int err = CL_SUCCESS;
 
@@ -159,6 +161,7 @@ int GetPlatformAndDeviceVersion (cl_platform_id platformId, ocl_args_d_t *ocl)
 
     return err;
 }
+#pragma endregion
 
 void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
