@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
@@ -167,11 +168,78 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(20);
 
+    // initialise data
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
-        inputArray[i] = rand();
+        switch (i % 4) {
+        case 0:
+            // the cell has an initial velocity 0, -1 or 1 in x direction
+            if (rand() % 2 == 0) inputArray[i] = rand() % 2;
+            else inputArray[i] = (int) (-1 * rand() % 2);
+            break;
+        case 1:
+            // the cell has an initial velocity 0, -1 or 1 in y direction
+            if (rand() % 2 == 0) inputArray[i] = rand() % 2;
+            else inputArray[i] = (int)(-1 * rand() % 2);
+            break;
+        case 2:
+            // the cell has a weignt between 1 and 4
+            inputArray[i] = 1 + rand() % 3;
+            break;
+        case 3:
+            // the cell is either alive or dead
+            inputArray[i] = rand() % 2;
+            break;
+        }
     }
+
+    // check initialisation
+    for (int i = 0; i < arrayHeight; i++) {
+        for (int j = 0; j < arrayWidth; j++) {
+            if(j % 4 == 0) printf("( ");
+            printf("%d ", inputArray[4 * i + j]);
+            if (j % 4 == 3) printf(" )");
+        }
+        printf("\n");
+    }
+
+}
+
+void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
+{
+    srand(20);
+
+    // operate on data: adds 808 to every fourth element
+    cl_uint array_size = arrayWidth * arrayHeight;
+    for (cl_uint i = 0; i < array_size; ++i)
+    {
+        switch (i % 4) {
+        case 0:
+            inputArray[i] = 0;
+            break;
+        case 1:
+            inputArray[i] = 0;
+            break;
+        case 2:
+            inputArray[i] = 0;
+            break;
+        case 3:
+            inputArray[i] = 808;
+            break;
+        }
+    }
+
+    // check pass
+    for (int i = 0; i < arrayHeight; i++) {
+        for (int j = 0; j < arrayWidth; j++) {
+            if (j % 4 == 0) printf("( ");
+            printf("%d ", inputArray[4 * i + j]);
+            if (j % 4 == 3) printf(" )");
+        }
+        printf("\n");
+    }
+
 }
 
 int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
@@ -354,8 +422,8 @@ int _tmain(int argc, TCHAR* argv[])
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
 
-    cl_uint arrayWidth  = 4;
-    cl_uint arrayHeight = 4;
+    cl_uint arrayWidth  = 16;
+    cl_uint arrayHeight = sqrt(arrayWidth);
 
     SetupOpenCL(&ocl, deviceType);
 
@@ -365,7 +433,7 @@ int _tmain(int argc, TCHAR* argv[])
     cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
 
     generateInput(inputA, arrayWidth, arrayHeight);
-    generateInput(inputB, arrayWidth, arrayHeight);
+    matrixPass(inputB, arrayWidth, arrayHeight);
 
     CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
 
