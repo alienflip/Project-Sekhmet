@@ -165,7 +165,7 @@ int GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 
 void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
-    srand(12345);
+    srand(20);
 
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
@@ -354,15 +354,15 @@ int _tmain(int argc, TCHAR* argv[])
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
 
-    cl_uint arrayWidth  = 1024;
-    cl_uint arrayHeight = 1024;
+    cl_uint arrayWidth  = 4;
+    cl_uint arrayHeight = 4;
 
     SetupOpenCL(&ocl, deviceType);
 
     cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1)/64 + 1) * 64;
-    cl_int* inputA  = (cl_int*)_aligned_malloc(optimizedSize, 4096);
-    cl_int* inputB  = (cl_int*)_aligned_malloc(optimizedSize, 4096);
-    cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 4096);
+    cl_int* inputA  = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
+    cl_int* inputB  = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
+    cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
 
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput(inputB, arrayWidth, arrayHeight);
@@ -378,6 +378,9 @@ int _tmain(int argc, TCHAR* argv[])
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
 
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
+
+    // insert breakpoint here to inspect kernel output
+    int bp = 0;
 
     _aligned_free(inputA);
     _aligned_free(inputB);
