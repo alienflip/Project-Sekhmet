@@ -11,4 +11,7 @@ __kernel void Add(read_only image2d_t imageA, read_only image2d_t imageB, write_
 
     write_imageui(imageC, (int2)(x, y), A + B);
 
+    printf("(%d, %d)\n", A, B);
+
 }
+
