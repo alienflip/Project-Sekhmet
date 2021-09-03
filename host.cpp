@@ -407,6 +407,15 @@ bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inp
         if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
 
+    for (int i = 0; i < width; i++) {
+        printf("( ");
+        for (int j = 0; j < height; j++) {
+            printf("%d ", resultPtr[4 * i + j]);
+        }
+        printf(" )");
+        if (i % 4 == 3) printf("\n");
+    }
+
     err = clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
 
     return result;
