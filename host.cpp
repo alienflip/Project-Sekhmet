@@ -1,3 +1,4 @@
+#pragma region c++ libs/includes, opencl version defs
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
@@ -15,6 +16,7 @@
 #include "utils.h"
 
 #include <Windows.h>
+#pragma endregion
 
 #pragma region create / destroy boilerplate
 struct ocl_args_d_t
@@ -65,6 +67,7 @@ ocl_args_d_t::~ocl_args_d_t()
     if (context) err = clReleaseContext(context);
 }
 #pragma endregion
+
 #pragma region device check boilerplate
 bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
 {
@@ -161,6 +164,7 @@ int GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 }
 #pragma endregion
 
+// inputs 
 void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(20);
@@ -381,6 +385,7 @@ cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
+// outputs
 bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inputA, cl_int *inputB)
 {
     cl_int err = CL_SUCCESS;
