@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
@@ -23,7 +22,6 @@ struct ocl_args_d_t
     ocl_args_d_t();
     ~ocl_args_d_t();
 
-    // Regular OpenCL objects:
     cl_context       context;           // hold the context handler
     cl_device_id     device;            // hold the selected device handler
     cl_command_queue commandQueue;      // hold the commands-queue handler
@@ -33,7 +31,6 @@ struct ocl_args_d_t
     float            deviceVersion;     // hold the OpenCL device version (default. 1.2)
     float            compilerVersion;   // hold the device OpenCL C version (default. 1.2)
 
-    // Objects that are specific for algorithm implemented in this sample
     cl_mem           srcA;              // hold first source buffer
     cl_mem           srcB;              // hold second source buffer
     cl_mem           dstMem;            // hold destination buffer
@@ -323,7 +320,6 @@ int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_
     format.image_channel_data_type = CL_UNSIGNED_INT32;
     format.image_channel_order     = CL_R;
 
-    // Define the image properties (descriptor)
     desc.image_type        = CL_MEM_OBJECT_IMAGE2D;
     desc.image_width       = arrayWidth;
     desc.image_height      = arrayHeight;
@@ -339,15 +335,12 @@ int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_
     desc.buffer            = NULL;
 #endif
 
-    // Create first image based on host memory inputA
     ocl->srcA = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputA, &err);
     if (CL_SUCCESS != err) return err;
 
-    // Create second image based on host memory inputB
     ocl->srcB = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputB, &err);
     if (CL_SUCCESS != err) return err;
 
-    // Create third (output) image based on host memory outputC
     ocl->dstMem = clCreateImage(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, outputC, &err);
     if (CL_SUCCESS != err) return err;
 
