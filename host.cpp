@@ -239,14 +239,15 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 
 }
 
-int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
+#pragma region program and kernel creation
+int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
 
     cl_platform_id platformId = FindOpenCLPlatform("Intel", deviceType);
     if (NULL == platformId) return CL_INVALID_VALUE;
 
-    cl_context_properties contextProperties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0};
+    cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
     if ((CL_SUCCESS != err) || (NULL == ocl->context)) return err;
 
@@ -258,13 +259,13 @@ int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
 #ifdef CL_VERSION_2_0
     if (OPENCL_VERSION_2_0 == ocl->deviceVersion)
     {
-        const cl_command_queue_properties properties[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
+        const cl_command_queue_properties properties[] = { CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0 };
         ocl->commandQueue = clCreateCommandQueueWithProperties(ocl->context, ocl->device, properties, &err);
-    } 
+    }
     else {
         cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
         ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
-    } 
+    }
 #else
     cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
     ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
@@ -274,7 +275,7 @@ int SetupOpenCL(ocl_args_d_t *ocl, cl_device_type deviceType)
     return CL_SUCCESS;
 }
 
-int CreateAndBuildProgram(ocl_args_d_t *ocl)
+int CreateAndBuildProgram(ocl_args_d_t* ocl)
 {
     cl_int err = CL_SUCCESS;
 
@@ -310,7 +311,7 @@ Finish:
     return err;
 }
 
-int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
+int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     cl_int err = CL_SUCCESS;
 
@@ -318,21 +319,21 @@ int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_
     cl_image_desc desc;
 
     format.image_channel_data_type = CL_UNSIGNED_INT32;
-    format.image_channel_order     = CL_R;
+    format.image_channel_order = CL_R;
 
-    desc.image_type        = CL_MEM_OBJECT_IMAGE2D;
-    desc.image_width       = arrayWidth;
-    desc.image_height      = arrayHeight;
-    desc.image_depth       = 0;
-    desc.image_array_size  = 1;
-    desc.image_row_pitch   = 0;
+    desc.image_type = CL_MEM_OBJECT_IMAGE2D;
+    desc.image_width = arrayWidth;
+    desc.image_height = arrayHeight;
+    desc.image_depth = 0;
+    desc.image_array_size = 1;
+    desc.image_row_pitch = 0;
     desc.image_slice_pitch = 0;
-    desc.num_mip_levels    = 0;
-    desc.num_samples       = 0;
+    desc.num_mip_levels = 0;
+    desc.num_samples = 0;
 #ifdef CL_VERSION_2_0
-    desc.mem_object        = NULL;
+    desc.mem_object = NULL;
 #else
-    desc.buffer            = NULL;
+    desc.buffer = NULL;
 #endif
 
     ocl->srcA = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputA, &err);
@@ -348,27 +349,27 @@ int CreateBufferArguments(ocl_args_d_t *ocl, cl_int* inputA, cl_int* inputB, cl_
     return CL_SUCCESS;
 }
 
-cl_uint SetKernelArguments(ocl_args_d_t *ocl)
+cl_uint SetKernelArguments(ocl_args_d_t* ocl)
 {
     cl_int err = CL_SUCCESS;
 
-    err  =  clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void *)&ocl->srcA);
+    err = clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
     if (CL_SUCCESS != err) return err;
 
-    err  = clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void *)&ocl->srcB);
+    err = clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
     if (CL_SUCCESS != err) return err;
 
-    err  = clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void *)&ocl->dstMem);
+    err = clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
     if (CL_SUCCESS != err) return err;
 
     return err;
 }
 
-cl_uint ExecuteAddKernel(ocl_args_d_t *ocl, cl_uint width, cl_uint height)
+cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
     cl_int err = CL_SUCCESS;
 
-    size_t globalWorkSize[2] = {width, height};
+    size_t globalWorkSize[2] = { width, height };
 
     err = clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
     if (CL_SUCCESS != err) return err;
@@ -378,6 +379,7 @@ cl_uint ExecuteAddKernel(ocl_args_d_t *ocl, cl_uint width, cl_uint height)
 
     return CL_SUCCESS;
 }
+#pragma endregion
 
 bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inputA, cl_int *inputB)
 {
