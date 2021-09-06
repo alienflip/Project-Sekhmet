@@ -195,6 +195,9 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         }
     }
 
+    // calculate averages, input into padded matrix
+    // ... 
+
     // check initialisation
     for (int i = 0; i < arrayHeight; i++) {
         for (int j = 0; j < arrayWidth; j++) {
@@ -213,33 +216,12 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 
     // operate on data: adds 808 to every fourth element
     cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i)
-    {
-        switch (i % 4) {
-        case 0:
-            inputArray[i] = 0;
-            break;
-        case 1:
-            inputArray[i] = 0;
-            break;
-        case 2:
-            inputArray[i] = 0;
-            break;
-        case 3:
-            inputArray[i] = 808;
-            break;
-        }
-    }
 
-    // check pass
-    for (int i = 0; i < arrayHeight; i++) {
-        for (int j = 0; j < arrayWidth; j++) {
-            if (j % 4 == 0) printf("( ");
-            printf("%d ", inputArray[4 * i + j]);
-            if (j % 4 == 3) printf(" )");
-        }
-        printf("\n");
-    }
+    // use hardcoded 2 degree neibours
+    // ... 
+    
+    // use padded elments to calculate iteration
+    // ...
 
 }
 
@@ -416,6 +398,9 @@ bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inp
         if (i % 4 == 3) printf("\n");
     }
 
+    // calculate averages, repeat processes
+    // ... 
+
     err = clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
 
     return result;
@@ -453,11 +438,11 @@ int _tmain(int argc, TCHAR* argv[])
     SetKernelArguments(&ocl);
 
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-
+     
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
     // insert breakpoint here to inspect kernel output
-    int bp = 0;
+     int bp = 0;
 
     _aligned_free(inputA);
     _aligned_free(inputB);
