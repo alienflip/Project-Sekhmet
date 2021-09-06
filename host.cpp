@@ -210,12 +210,45 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 
 }
 
+// calcualte 2 degrees of seperation points
+int* local_points(int x, int y, cl_uint arrayWidth, cl_uint arrayHeight) {
+
+    int surrounding[24] = {};
+
+    // layer 1
+    surrounding[0] = ((y + 1) - 1) * arrayWidth + (x)-1;
+    surrounding[1] = ((y + 1) - 1) * arrayWidth + (x + 1) - 1;
+    surrounding[2] = ((y + 1) - 1) * arrayWidth + (x - 1) - 1;
+    surrounding[3] = ((y - 1) - 1) * arrayWidth + (x)-1;
+    surrounding[4] = ((y - 1) - 1) * arrayWidth + (x + 1) - 1;
+    surrounding[5] = ((y - 1) - 1) * arrayWidth + (x - 1) - 1;
+    surrounding[6] = ((y)-1) * arrayWidth + (x)-1;
+    surrounding[7] = ((y)-1) * arrayWidth + (x + 1) - 1;
+
+    // layer 2
+    surrounding[8] = ((y + 2) - 1) * arrayWidth + (x - 2) - 1;
+    surrounding[9] = ((y + 2) - 1) * arrayWidth + (x - 1) - 1;
+    surrounding[10] = ((y + 2) - 1) * arrayWidth + (x)-1;
+    surrounding[11] = ((y + 2) - 1) * arrayWidth + (x + 1) - 1;
+    surrounding[12] = ((y + 2) - 1) * arrayWidth + (x + 1) - 1;
+    surrounding[13] = ((y - 2) - 1) * arrayWidth + (x - 2) - 1;
+    surrounding[14] = ((y - 2) - 1) * arrayWidth + (x - 1) - 1;
+    surrounding[15] = ((y - 2) - 1) * arrayWidth + (x)-1;
+    surrounding[16] = ((y - 2) - 1) * arrayWidth + (x + 1) - 1;
+    surrounding[17] = ((y - 2) - 1) * arrayWidth + (x + 2) - 1;
+    surrounding[18] = ((y - 1) - 1) * arrayWidth + (x - 2) - 1;
+    surrounding[19] = ((y - 1) - 1) * arrayWidth + (x + 2) - 1;
+    surrounding[20] = ((y - 1) - 1) * arrayWidth + (x - 2) - 1;
+    surrounding[21] = ((y - 1) - 1) * arrayWidth + (x + 2) - 1;
+    surrounding[22] = ((y)-1) * arrayWidth + (x - 2) - 1;
+    surrounding[23] = ((y)-1) * arrayWidth + (x + 2) - 1;
+
+    return surrounding;
+}
+
 void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(20);
-
-    // operate on data: adds 808 to every fourth element
-    cl_uint array_size = arrayWidth * arrayHeight;
 
     // use hardcoded 2 degree neibours
     // ... 
@@ -223,6 +256,22 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     // use padded elments to calculate iteration
     // ...
 
+    cl_uint array_size = arrayWidth * arrayHeight;
+    for (cl_uint i = 0; i < array_size; ++i)
+    {
+        int x = (int)(i % arrayWidth);
+        int y = (int)(i / arrayWidth);
+
+        int* surrounding_points = local_points(x, y, arrayWidth, arrayHeight);
+
+        for (int i = 0; i < 24; i++) {
+            printf("%d ", surrounding_points[i]);
+        }
+
+        inputArray[i] = 0;
+        
+    }
+    printf("\n\n");
 }
 
 #pragma region program and kernel creation
@@ -438,7 +487,9 @@ int _tmain(int argc, TCHAR* argv[])
     SetKernelArguments(&ocl);
 
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-     
+
+    printf("\n");
+
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
     // insert breakpoint here to inspect kernel output
