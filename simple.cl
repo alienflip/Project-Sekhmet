@@ -1,17 +1,15 @@
-
 constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
-__kernel void Add(read_only image2d_t imageA, read_only image2d_t imageB, write_only image2d_t imageC)
+__kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    uint A = read_imageui(imageA, sampler, (int2)(x, y)).x;
-    uint B = read_imageui(imageB, sampler, (int2)(x, y)).x;
+    // input matrixes
 
-    write_imageui(imageC, (int2)(x, y), A + B);
 
-    printf("(%d, %d)\n", A, B);
+    printf("%d %d\n", x, 4 * y);
+
+    // output matrix
 
 }
-
