@@ -116,7 +116,7 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         case 0:
             // the cell has an initial velocity 0, -1 or 1 in x direction
             if (rand() % 2 == 0) inputArray[i] = rand() % 2;
-            else inputArray[i] = (int) (-1 * rand() % 2);
+            else inputArray[i] = (int)(-1 * rand() % 2);
             break;
         case 1:
             // the cell has an initial velocity 0, -1 or 1 in y direction
@@ -140,7 +140,7 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     // check initialisation
     for (int i = 0; i < arrayHeight; i++) {
         for (int j = 0; j < arrayWidth; j++) {
-            if(j % 4 == 0) printf("( ");
+            if (j % 4 == 0) printf("( ");
             printf("%d ", inputArray[4 * i + j]);
             if (j % 4 == 3) printf(" )");
         }
@@ -155,11 +155,11 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 
     // use hardcoded 2 degree neibours
     // ... 
-    
+
     // use padded elments to calculate iteration
     // ...
 
-    cl_uint array_size = arrayWidth * arrayHeight; 
+    cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
         int x = (int)(i % arrayWidth);
@@ -191,7 +191,7 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         }
 
         inputArray[i] = 1;
-        
+
     }
     printf("\n\n");
 }
@@ -263,31 +263,15 @@ int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_
     cl_image_format format;
     cl_image_desc desc;
 
-    format.image_channel_data_type = CL_UNSIGNED_INT32;
-    format.image_channel_order = CL_R;
+    size_t size = arrayWidth * arrayHeight;
 
-    desc.image_type = CL_MEM_OBJECT_IMAGE2D;
-    desc.image_width = arrayWidth;
-    desc.image_height = arrayHeight;
-    desc.image_depth = 0;
-    desc.image_array_size = 1;
-    desc.image_row_pitch = 0;
-    desc.image_slice_pitch = 0;
-    desc.num_mip_levels = 0;
-    desc.num_samples = 0;
-#ifdef CL_VERSION_2_0
-    desc.mem_object = NULL;
-#else
-    desc.buffer = NULL;
-#endif
-
-    ocl->srcA = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputA, &err);
+    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputA, &err);
     if (CL_SUCCESS != err) return err;
 
-    ocl->srcB = clCreateImage(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, inputB, &err);
+    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputB, &err);
     if (CL_SUCCESS != err) return err;
 
-    ocl->dstMem = clCreateImage(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, outputC, &err);
+    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size, outputC, &err);
     if (CL_SUCCESS != err) return err;
 
     return CL_SUCCESS;
@@ -327,16 +311,16 @@ cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 #pragma endregion
 
 // outputs
-bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inputA, cl_int *inputB)
+bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
     cl_int err = CL_SUCCESS;
     bool result = true;
 
-    size_t origin[] = {0, 0, 0};
-    size_t region[] = {width, height, 1};
+    size_t origin[] = { 0, 0, 0 };
+    size_t region[] = { width, height, 1 };
     size_t image_row_pitch;
     size_t image_slice_pitch;
-    cl_int *resultPtr = (cl_int *)clEnqueueMapImage(ocl->commandQueue, ocl->dstMem, true, CL_MAP_READ, origin, region, &image_row_pitch, &image_slice_pitch, 0, NULL, NULL, &err);
+    cl_int* resultPtr = (cl_int*)clEnqueueMapImage(ocl->commandQueue, ocl->dstMem, true, CL_MAP_READ, origin, region, &image_row_pitch, &image_slice_pitch, 0, NULL, NULL, &err);
 
     if (CL_SUCCESS != err) return false;
 
@@ -351,7 +335,7 @@ bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inp
     for (int i = 0; i < height; i++) {
         printf("\n");
         for (int j = 0; j < width; j++) {
-            if(j % 4 == 0) printf("( ");
+            if (j % 4 == 0) printf("( ");
             printf("%d ", resultPtr[i * width + j]);
             if (j % 4 == 3) printf(" )");
         }
@@ -375,14 +359,14 @@ int _tmain(int argc, TCHAR* argv[])
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
 
-    cl_uint arrayWidth  = 16;
+    cl_uint arrayWidth = 16;
     cl_uint arrayHeight = sqrt(arrayWidth);
 
     SetupOpenCL(&ocl, deviceType);
 
-    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1)/64 + 1) * 64;
-    cl_int* inputA  = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
-    cl_int* inputB  = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
+    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / 64 + 1) * 64;
+    cl_int* inputA = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
+    cl_int* inputB = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
     cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 2 * arrayWidth);
 
     generateInput(inputA, arrayWidth, arrayHeight);
