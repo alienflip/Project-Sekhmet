@@ -123,44 +123,6 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
 
     return NULL;
 }
-
-int GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
-{
-    cl_int err = CL_SUCCESS;
-
-    size_t stringLength = 0;
-    err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err) return err;
-
-    std::vector<char> platformVersion(stringLength);
-
-    err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, stringLength, &platformVersion[0], NULL);
-    if (CL_SUCCESS != err) return err;
-
-    if (strstr(&platformVersion[0], "OpenCL 2.0") != NULL) ocl->platformVersion = OPENCL_VERSION_2_0;
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err) return err;
-
-    std::vector<char> deviceVersion(stringLength);
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, stringLength, &deviceVersion[0], NULL);
-    if (CL_SUCCESS != err) return err;
-
-    if (strstr(&deviceVersion[0], "OpenCL 2.0") != NULL) ocl->deviceVersion = OPENCL_VERSION_2_0;
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err) return err;
-
-    std::vector<char> compilerVersion(stringLength);
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, stringLength, &compilerVersion[0], NULL);
-    if (CL_SUCCESS != err) return err;
-
-    else if (strstr(&compilerVersion[0], "OpenCL C 2.0") != NULL) ocl->compilerVersion = OPENCL_VERSION_2_0;
-
-    return err;
-}
 #pragma endregion
 
 // inputs 
@@ -270,8 +232,6 @@ int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 
     err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
     if (CL_SUCCESS != err) return err;
-
-    GetPlatformAndDeviceVersion(platformId, ocl);
 
 #ifdef CL_VERSION_2_0
     if (OPENCL_VERSION_2_0 == ocl->deviceVersion)
@@ -407,13 +367,13 @@ bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inp
         if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
 
-    for (int i = 0; i < width; i++) {
-        printf("( ");
-        for (int j = 0; j < height; j++) {
-            printf("%d ", resultPtr[4 * i + j]);
+    for (int i = 0; i < height; i++) {
+        printf("\n");
+        for (int j = 0; j < width; j++) {
+            if(j % 4 == 0) printf("( ");
+            printf("%d ", resultPtr[i * width + j]);
+            if (j % 4 == 3) printf(" )");
         }
-        printf(" )");
-        if (i % 4 == 3) printf("\n");
     }
 
     // calculate averages, repeat processes
