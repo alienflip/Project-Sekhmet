@@ -1,20 +1,19 @@
 #pragma region c++ libs/includes, opencl version defs
+
+#define OPENCL_VERSION_1_2  1.2f
+#define OPENCL_VERSION_2_0  2.0f
+#define CL_TARGET_OPENCL_VERSION 220
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
 #include <memory.h>
 #include <vector>
-
-#define OPENCL_VERSION_1_2  1.2f
-#define OPENCL_VERSION_2_0  2.0f
-
-#define CL_TARGET_OPENCL_VERSION 220
-
-#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#include <Windows.h>
 
 #include "CL\cl.h"
 
-#include <Windows.h>
 #pragma endregion
 
 #pragma region create / destroy boilerplate
@@ -170,7 +169,7 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     printf("\n\n");
 }
 
-#pragma region program creation
+#pragma region program and kernel creation
 int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
 {
     int errorCode = CL_SUCCESS;
@@ -251,7 +250,6 @@ Finish:
 
     return err;
 }
-#pragma endregion
 
 // use this to edit kernel inputs
 int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
@@ -275,7 +273,6 @@ int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_
     return CL_SUCCESS;
 }
 
-#pragma region kernel creation
 cl_uint SetKernelArguments(ocl_args_d_t* ocl)
 {
     cl_int err = CL_SUCCESS;
