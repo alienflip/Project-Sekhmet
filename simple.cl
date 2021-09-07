@@ -7,9 +7,7 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
     const int y = get_global_id(1);
 
     // input matrixes
-
     int surrounding[24] = {};
-
 
     int counter = 0;
     for (int i = -1; i <= 1; i++) {
@@ -31,12 +29,13 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
         }
     }
 
+    /*
     for (int i = 0; i < 24; i++) {
         printf("%d ", surrounding[i]);
     }printf("\n");
-
-    //printf("x: %d -> m_x %d, y: %d -> m_y: %d\n", x + 1, M_A[x], y + 1, M_B[y]);
+    */
 
     // output matrix
-
+    M_C[x * arrayWidth + y] = M_A[x] + M_B[y];
+    printf("%d\n", M_C[x * arrayWidth + y]);
 }
