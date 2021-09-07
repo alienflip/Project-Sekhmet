@@ -69,28 +69,6 @@ ocl_args_d_t::~ocl_args_d_t()
 #pragma endregion
 
 #pragma region device check boilerplate
-bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
-{
-    size_t stringLength = 0;
-    cl_int err = CL_SUCCESS;
-    bool match = false;
-
-    err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, NULL, &stringLength);
-    if (CL_SUCCESS != err) return false;
-
-    std::vector<char> platformName(stringLength);
-
-    err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, stringLength, &platformName[0], NULL);
-    if (CL_SUCCESS != err) return false;
-
-    if (strstr(&platformName[0], preferredPlatform) != 0)
-    {
-        match = true;
-    }
-
-    return match;
-}
-
 cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type deviceType)
 {
     cl_uint numPlatforms = 0;
@@ -111,7 +89,7 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
         bool match = true;
         cl_uint numDevices = 0;
 
-        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0)) match = CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
+        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0)) match = true;
 
         if (match)
         {
@@ -218,7 +196,7 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     printf("\n\n");
 }
 
-#pragma region program and kernel creation
+#pragma region program creation
 int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
@@ -275,7 +253,9 @@ Finish:
 
     return err;
 }
+#pragma endregion
 
+// use this to edit kernel inputs
 int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     cl_int err = CL_SUCCESS;
@@ -313,6 +293,7 @@ int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_
     return CL_SUCCESS;
 }
 
+#pragma region kernel creation
 cl_uint SetKernelArguments(ocl_args_d_t* ocl)
 {
     cl_int err = CL_SUCCESS;
