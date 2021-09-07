@@ -22,18 +22,18 @@ struct ocl_args_d_t
     ocl_args_d_t();
     ~ocl_args_d_t();
 
-    cl_context       context;           // hold the context handler
-    cl_device_id     device;            // hold the selected device handler
-    cl_command_queue commandQueue;      // hold the commands-queue handler
-    cl_program       program;           // hold the program handler
-    cl_kernel        kernel;            // hold the kernel handler
-    float            platformVersion;   // hold the OpenCL platform version (default 1.2)
-    float            deviceVersion;     // hold the OpenCL device version (default. 1.2)
-    float            compilerVersion;   // hold the device OpenCL C version (default. 1.2)
+    cl_context       context;
+    cl_device_id     device;
+    cl_command_queue commandQueue;
+    cl_program       program;
+    cl_kernel        kernel;
+    float            platformVersion;
+    float            deviceVersion;
+    float            compilerVersion;
 
-    cl_mem           srcA;              // hold first source buffer
-    cl_mem           srcB;              // hold second source buffer
-    cl_mem           dstMem;            // hold destination buffer
+    cl_mem           srcA;
+    cl_mem           srcB;
+    cl_mem           dstMem;
 };
 
 ocl_args_d_t::ocl_args_d_t() :
@@ -305,7 +305,7 @@ cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
-// outputs
+// need to us buffer enqueue
 bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
     cl_int err = CL_SUCCESS;
@@ -326,8 +326,7 @@ bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
     {
         if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
-
-    /*
+    
     for (int i = 0; i < height; i++) {
         printf("\n");
         for (int j = 0; j < width; j++) {
@@ -336,7 +335,6 @@ bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
             if (j % 4 == 3) printf(" )");
         }
     }
-    */
 
     // calculate averages, repeat processes
     // ... 
