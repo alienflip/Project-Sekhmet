@@ -243,6 +243,11 @@ int* local_points(int x, int y, cl_uint arrayWidth, cl_uint arrayHeight) {
     surrounding[22] = ((y)-1) * arrayWidth + (x - 2) - 1;
     surrounding[23] = ((y)-1) * arrayWidth + (x + 2) - 1;
 
+    for (int i = 0; i < 24; i++) {
+        if (surrounding[i] < 0 || surrounding[i] > 23) {
+            surrounding[i] = -1;
+        }
+    }
     return surrounding;
 }
 
