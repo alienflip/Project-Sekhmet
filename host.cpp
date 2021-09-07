@@ -85,7 +85,6 @@ bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredP
 
     if (strstr(&platformName[0], preferredPlatform) != 0)
     {
-        LogInfo("Platform: %s\n", &platformName[0]);
         match = true;
     }
 
@@ -210,47 +209,6 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 
 }
 
-// calcualte 2 degrees of seperation points
-int* local_points(int x, int y, cl_uint arrayWidth, cl_uint arrayHeight) {
-
-    int surrounding[24] = {};
-
-    // layer 1
-    surrounding[0] = ((y + 1) - 1) * arrayWidth + (x)-1;
-    surrounding[1] = ((y + 1) - 1) * arrayWidth + (x + 1) - 1;
-    surrounding[2] = ((y + 1) - 1) * arrayWidth + (x - 1) - 1;
-    surrounding[3] = ((y - 1) - 1) * arrayWidth + (x)-1;
-    surrounding[4] = ((y - 1) - 1) * arrayWidth + (x + 1) - 1;
-    surrounding[5] = ((y - 1) - 1) * arrayWidth + (x - 1) - 1;
-    surrounding[6] = ((y)-1) * arrayWidth + (x)-1;
-    surrounding[7] = ((y)-1) * arrayWidth + (x + 1) - 1;
-
-    // layer 2
-    surrounding[8] = ((y + 2) - 1) * arrayWidth + (x - 2) - 1;
-    surrounding[9] = ((y + 2) - 1) * arrayWidth + (x - 1) - 1;
-    surrounding[10] = ((y + 2) - 1) * arrayWidth + (x)-1;
-    surrounding[11] = ((y + 2) - 1) * arrayWidth + (x + 1) - 1;
-    surrounding[12] = ((y + 2) - 1) * arrayWidth + (x + 1) - 1;
-    surrounding[13] = ((y - 2) - 1) * arrayWidth + (x - 2) - 1;
-    surrounding[14] = ((y - 2) - 1) * arrayWidth + (x - 1) - 1;
-    surrounding[15] = ((y - 2) - 1) * arrayWidth + (x)-1;
-    surrounding[16] = ((y - 2) - 1) * arrayWidth + (x + 1) - 1;
-    surrounding[17] = ((y - 2) - 1) * arrayWidth + (x + 2) - 1;
-    surrounding[18] = ((y - 1) - 1) * arrayWidth + (x - 2) - 1;
-    surrounding[19] = ((y - 1) - 1) * arrayWidth + (x + 2) - 1;
-    surrounding[20] = ((y - 1) - 1) * arrayWidth + (x - 2) - 1;
-    surrounding[21] = ((y - 1) - 1) * arrayWidth + (x + 2) - 1;
-    surrounding[22] = ((y)-1) * arrayWidth + (x - 2) - 1;
-    surrounding[23] = ((y)-1) * arrayWidth + (x + 2) - 1;
-
-    for (int i = 0; i < 24; i++) {
-        if (surrounding[i] < 0 || surrounding[i] > 23) {
-            surrounding[i] = -1;
-        }
-    }
-    return surrounding;
-}
-
 void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(20);
@@ -261,19 +219,38 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     // use padded elments to calculate iteration
     // ...
 
-    cl_uint array_size = arrayWidth * arrayHeight;
+    cl_uint array_size = arrayWidth * arrayHeight; 
     for (cl_uint i = 0; i < array_size; ++i)
     {
         int x = (int)(i % arrayWidth);
         int y = (int)(i / arrayWidth);
 
-        int* surrounding_points = local_points(x, y, arrayWidth, arrayHeight);
+        int surrounding[24] = {};
 
-        for (int i = 0; i < 24; i++) {
-            printf("%d ", surrounding_points[i]);
+        if (i < 24) {
+            // layer 1
+            int counter = 0;
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    if (i == 1 || j == 1 || i == -1 || j == -1) {
+                        surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
+                        counter++;
+                    }
+                }
+            }
+
+            // layer 2
+            for (int i = -2; i <= 2; i++) {
+                for (int j = -2; j <= 2; j++) {
+                    if (i == 2 || j == 2 || i == -2 || j == -2) {
+                        surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
+                        counter++;
+                    }
+                }
+            }
         }
 
-        inputArray[i] = 0;
+        inputArray[i] = 1;
         
     }
     printf("\n\n");
@@ -284,7 +261,7 @@ int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
 
-    cl_platform_id platformId = FindOpenCLPlatform("Intel", deviceType);
+    cl_platform_id platformId = FindOpenCLPlatform("NVIDIA", deviceType);
     if (NULL == platformId) return CL_INVALID_VALUE;
 
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
@@ -328,18 +305,6 @@ int CreateAndBuildProgram(ocl_args_d_t* ocl)
     if (CL_SUCCESS != err) goto Finish;
 
     err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
-    if (CL_SUCCESS != err)
-    {
-
-        if (err == CL_BUILD_PROGRAM_FAILURE)
-        {
-            size_t log_size = 0;
-            clGetProgramBuildInfo(ocl->program, ocl->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-
-            std::vector<char> build_log(log_size);
-            clGetProgramBuildInfo(ocl->program, ocl->device, CL_PROGRAM_BUILD_LOG, log_size, &build_log[0], NULL);
-        }
-    }
 
 Finish:
     if (source)
@@ -384,7 +349,6 @@ int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_
 
     ocl->dstMem = clCreateImage(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &format, &desc, outputC, &err);
     if (CL_SUCCESS != err) return err;
-
 
     return CL_SUCCESS;
 }
@@ -497,8 +461,10 @@ int _tmain(int argc, TCHAR* argv[])
 
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
+    printf("\n");
+
     // insert breakpoint here to inspect kernel output
-     int bp = 0;
+    int bp = 0;
 
     _aligned_free(inputA);
     _aligned_free(inputB);
