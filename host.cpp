@@ -13,7 +13,6 @@
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 
 #include "CL\cl.h"
-#include "utils.h"
 
 #include <Windows.h>
 #pragma endregion
@@ -172,6 +171,30 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 }
 
 #pragma region program creation
+int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
+{
+    int errorCode = CL_SUCCESS;
+
+    FILE* fp = NULL;
+    fopen_s(&fp, fileName, "rb");
+    if (!fp == NULL)
+    {
+        fseek(fp, 0, SEEK_END);
+        *sourceSize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        *source = new char[*sourceSize];
+        if (*source == NULL)
+        {
+            errorCode = CL_OUT_OF_HOST_MEMORY;
+        }
+        else {
+            fread(*source, 1, *sourceSize, fp);
+        }
+    }
+    return errorCode;
+}
+
 int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
