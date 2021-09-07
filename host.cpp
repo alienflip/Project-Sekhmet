@@ -165,32 +165,7 @@ void matrixPass(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         int x = (int)(i % arrayWidth);
         int y = (int)(i / arrayWidth);
 
-        int surrounding[24] = {};
-
-        if (i < 24) {
-            // layer 1
-            int counter = 0;
-            for (int i = -1; i <= 1; i++) {
-                for (int j = -1; j <= 1; j++) {
-                    if (i == 1 || j == 1 || i == -1 || j == -1) {
-                        surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
-                        counter++;
-                    }
-                }
-            }
-
-            // layer 2
-            for (int i = -2; i <= 2; i++) {
-                for (int j = -2; j <= 2; j++) {
-                    if (i == 2 || j == 2 || i == -2 || j == -2) {
-                        surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
-                        counter++;
-                    }
-                }
-            }
-        }
-
-        inputArray[i] = 1;
+        inputArray[i] = 0;
 
     }
     printf("\n\n");
