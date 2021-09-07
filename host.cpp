@@ -330,6 +330,7 @@ bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
         if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
 
+    /*
     for (int i = 0; i < height; i++) {
         printf("\n");
         for (int j = 0; j < width; j++) {
@@ -338,6 +339,7 @@ bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
             if (j % 4 == 3) printf(" )");
         }
     }
+    */
 
     // calculate averages, repeat processes
     // ... 
