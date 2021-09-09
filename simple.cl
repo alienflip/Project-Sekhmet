@@ -1,6 +1,3 @@
-constant uint arrayWidth = 16;
-constant uint arrayHeight = 4;
-
 constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 
 __kernel void Add(__global int* A, __global int* B, __global int* C)
@@ -35,8 +32,9 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
         }
     }
 
-    uint M_A = A[x];
-    uint M_B = B[x];
+    uint M_A = A[x * 1024 + y];
+    uint M_B = B[x + y * 1024];
 
     C[x * 1024 + y] = M_A + M_B;
 }
+
