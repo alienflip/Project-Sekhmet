@@ -8,7 +8,6 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    // input matrixes
     int surrounding[24] = {};
 
     int counter = 0;
@@ -24,7 +23,6 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
         }
     }
 
-    // layer 2
     for (int i = -2; i <= 2; i++) {
         for (int j = -2; j <= 2; j++) {
             if (i == 2 || j == 2 || i == -2 || j == -2) {
@@ -42,4 +40,3 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
 
     C[x * 1024 + y] = M_A + M_B;
 }
-
