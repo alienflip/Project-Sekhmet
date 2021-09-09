@@ -211,7 +211,6 @@ void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
 
 int _tmain(int argc, TCHAR* argv[])
 {
-    cl_int err;
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
@@ -231,7 +230,7 @@ int _tmain(int argc, TCHAR* argv[])
     CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
     CreateAndBuildProgram(&ocl);
 
-    ocl.kernel = clCreateKernel(ocl.program, "Add", &err);
+    ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
 
     SetKernelArguments(&ocl);
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
