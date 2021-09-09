@@ -196,20 +196,17 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
-bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
+void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
-    cl_int err = CL_SUCCESS;
-    bool result = true;
     unsigned int size = width * height;
     int* C = (int*)malloc(sizeof(int) * size);
     cl_int* resultPtr = (cl_int*)clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
-    err = clFinish(ocl->commandQueue);
+    clFinish(ocl->commandQueue);
     for (unsigned int k = 0; k < size; ++k)
     {
         printf("%d\n", C[k]);
     }
-    err = clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
-    return result;
+    clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
 }
 
 int _tmain(int argc, TCHAR* argv[])
