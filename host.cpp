@@ -205,7 +205,7 @@ int CreateAndBuildProgram(ocl_args_d_t* ocl)
     cl_int err = CL_SUCCESS;
     char* source = NULL;
     size_t src_size = 0;
-    err = ReadSourceFromFile("Template.cl", &source, &src_size);
+    err = ReadSourceFromFile("simple.cl", &source, &src_size);
     ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, &err);
     err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
     return err;
@@ -244,7 +244,7 @@ cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
-bool ReadAndVerify(ocl_args_d_t *ocl, cl_uint width, cl_uint height, cl_int *inputA, cl_int *inputB)
+bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
     cl_int err = CL_SUCCESS;
     bool result = true;
@@ -266,7 +266,7 @@ int _tmain(int argc, TCHAR* argv[])
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
-    cl_uint arrayWidth  = 1024;
+    cl_uint arrayWidth = 1024;
     cl_uint arrayHeight = 1024;
 
     if (CL_SUCCESS != SetupOpenCL(&ocl, deviceType))
@@ -274,9 +274,9 @@ int _tmain(int argc, TCHAR* argv[])
         return -1;
     }
 
-    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1)/64 + 1) * 64;
-    cl_int* inputA  = (cl_int*)_aligned_malloc(optimizedSize, 4096);
-    cl_int* inputB  = (cl_int*)_aligned_malloc(optimizedSize, 4096);
+    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / 64 + 1) * 64;
+    cl_int* inputA = (cl_int*)_aligned_malloc(optimizedSize, 4096);
+    cl_int* inputB = (cl_int*)_aligned_malloc(optimizedSize, 4096);
     cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 4096);
 
     generateInput(inputA, arrayWidth, arrayHeight);
@@ -290,7 +290,7 @@ int _tmain(int argc, TCHAR* argv[])
     {
         return -1;
     }
-    
+
     ocl.kernel = clCreateKernel(ocl.program, "Add", &err);
 
     if (CL_SUCCESS != SetKernelArguments(&ocl))
