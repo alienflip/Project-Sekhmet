@@ -1,3 +1,5 @@
 # Sekhmet
 
-Lets go!
+Let's go!
+
+GPU shennanigans with NVIDIA configured openCL.
