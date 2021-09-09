@@ -70,17 +70,14 @@ ocl_args_d_t::~ocl_args_d_t()
 cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type deviceType)
 {
     cl_uint numPlatforms = 0;
-    cl_int err = CL_SUCCESS;
 
-    err = clGetPlatformIDs(0, NULL, &numPlatforms);
-    if (CL_SUCCESS != err) return NULL;
+    clGetPlatformIDs(0, NULL, &numPlatforms);
 
     if (0 == numPlatforms) return NULL;
 
     std::vector<cl_platform_id> platforms(numPlatforms);
 
-    err = clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
-    if (CL_SUCCESS != err) return NULL;
+    clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
 
     for (cl_uint i = 0; i < numPlatforms; i++)
     {
@@ -91,7 +88,7 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
 
         if (match)
         {
-            err = clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
+            clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
 
             if (0 != numDevices) return platforms[i];
         }
@@ -194,154 +191,70 @@ int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
     return errorCode;
 }
 
-int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
+void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
-    cl_int err = CL_SUCCESS;
-
     cl_platform_id platformId = FindOpenCLPlatform("NVIDIA", deviceType);
-    if (NULL == platformId) return CL_INVALID_VALUE;
-
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
-    ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
-    if ((CL_SUCCESS != err) || (NULL == ocl->context)) return err;
-
-    err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
-    if (CL_SUCCESS != err) return err;
-
-#ifdef CL_VERSION_2_0
+    ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, NULL);
+    clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
     if (OPENCL_VERSION_2_0 == ocl->deviceVersion)
     {
         const cl_command_queue_properties properties[] = { CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0 };
-        ocl->commandQueue = clCreateCommandQueueWithProperties(ocl->context, ocl->device, properties, &err);
+        ocl->commandQueue = clCreateCommandQueueWithProperties(ocl->context, ocl->device, properties, NULL);
     }
-    else {
-        cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
-        ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
-    }
-#else
-    cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
-    ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
-#endif
-    if (CL_SUCCESS != err) return err;
-
-    return CL_SUCCESS;
 }
 
-int CreateAndBuildProgram(ocl_args_d_t* ocl)
+void CreateAndBuildProgram(ocl_args_d_t* ocl)
 {
-    cl_int err = CL_SUCCESS;
-
     char* source = NULL;
     size_t src_size = 0;
-    err = ReadSourceFromFile("simple.cl", &source, &src_size);
-    if (CL_SUCCESS != err) goto Finish;
 
-    ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, &err);
-    if (CL_SUCCESS != err) goto Finish;
-
-    err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
-
-Finish:
-    if (source)
-    {
-        delete[] source;
-        source = NULL;
-    }
-
-    return err;
+    ReadSourceFromFile("simple.cl", &source, &src_size);
+    ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, NULL);
+    clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
 }
 
 // use this to edit kernel inputs
-int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
-    cl_int err = CL_SUCCESS;
-
-    cl_image_format format;
-    cl_image_desc desc;
-
     size_t size = arrayWidth * arrayHeight;
 
-    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputA, &err);
-    if (CL_SUCCESS != err) return err;
-
-    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputB, &err);
-    if (CL_SUCCESS != err) return err;
-
-    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size, outputC, &err);
-    if (CL_SUCCESS != err) return err;
-
-    return CL_SUCCESS;
+    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputA, NULL);
+    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputB, NULL);
+    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size, outputC, NULL);
 }
 
-cl_uint SetKernelArguments(ocl_args_d_t* ocl)
+void SetKernelArguments(ocl_args_d_t* ocl)
 {
-    cl_int err = CL_SUCCESS;
-
-    err = clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
-    if (CL_SUCCESS != err) return err;
-
-    err = clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
-    if (CL_SUCCESS != err) return err;
-
-    err = clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
-    if (CL_SUCCESS != err) return err;
-
-    return err;
+    clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
+    clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
+    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
 }
 
-cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
+void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
-    cl_int err = CL_SUCCESS;
-
     size_t globalWorkSize[2] = { width, height };
 
-    err = clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-    if (CL_SUCCESS != err) return err;
-
-    err = clFinish(ocl->commandQueue);
-    if (CL_SUCCESS != err) return err;
-
-    return CL_SUCCESS;
+    clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
 }
 #pragma endregion
 
 // need to us buffer enqueue
-bool ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
+void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
-    cl_int err = CL_SUCCESS;
-    bool result = true;
+    // Read the memory buffer C on the device to the local variable C
+    int* C_;
+    C_ = (int*)malloc(sizeof(int) * width * height);
+    clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, 
+        width * height * sizeof(int), C_, 0, NULL, NULL);
 
-    size_t origin[] = { 0, 0, 0 };
-    size_t region[] = { width, height, 1 };
-    size_t image_row_pitch;
-    size_t image_slice_pitch;
-    cl_int* resultPtr = (cl_int*)clEnqueueMapImage(ocl->commandQueue, ocl->dstMem, true, CL_MAP_READ, origin, region, &image_row_pitch, &image_slice_pitch, 0, NULL, NULL, &err);
+    // Display the result to the screen
+    for (int i = 0; i < width * height; i++) {
+        printf("%d\n", C_[i]);
 
-    if (CL_SUCCESS != err) return false;
-
-    err = clFinish(ocl->commandQueue);
-
-    unsigned int size = width * height;
-    for (unsigned int k = 0; k < size; ++k)
-    {
-        if (resultPtr[k] != inputA[k] + inputB[k]) result = false;
     }
     
-    for (int i = 0; i < height; i++) {
-        printf("\n");
-        for (int j = 0; j < width; j++) {
-            if (j % 4 == 0) printf("( ");
-            printf("%d ", resultPtr[i * width + j]);
-            if (j % 4 == 3) printf(" )");
-        }
-    }
-
-    // calculate averages, repeat processes
-    // ... 
-
-    err = clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
-
-    return result;
+    clFinish(ocl->commandQueue);
 }
 
 int _tmain(int argc, TCHAR* argv[])
