@@ -123,7 +123,7 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
-    cl_platform_id platformId = FindOpenCLPlatform("Intel", deviceType);
+    cl_platform_id platformId = FindOpenCLPlatform("NVIDIA", deviceType);
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
     err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
