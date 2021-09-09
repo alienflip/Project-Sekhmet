@@ -1,5 +1,6 @@
 constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 constant uint arrayWidth = 16;
+constant uint arrayHeight = 4;
 
 __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
 {
@@ -14,6 +15,9 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
         for (int j = -1; j <= 1; j++) {
             if (i == 1 || j == 1 || i == -1 || j == -1) {
                 surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
+                if (surrounding[counter] < 0 || surrounding[counter] >= arrayWidth * arrayHeight) {
+                    surrounding[counter] = -1;
+                }
                 counter++;
             }
         }
@@ -24,6 +28,9 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
         for (int j = -2; j <= 2; j++) {
             if (i == 2 || j == 2 || i == -2 || j == -2) {
                 surrounding[counter] = ((y + i) - 1) * arrayWidth + (x + j) - 1;
+                if (surrounding[counter] < 0 || surrounding[counter] >= arrayWidth * arrayHeight) {
+                    surrounding[counter] = -1;
+                }
                 counter++;
             }
         }
@@ -33,9 +40,11 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
     for (int i = 0; i < 24; i++) {
         printf("%d ", surrounding[i]);
     }printf("\n");
+    printf("\n");
     */
+    
 
     // output matrix
-    M_C[x * arrayWidth + y] = M_A[x] + M_B[y];
-    printf("%d\n", M_C[x * arrayWidth + y]);
+    M_C[x + arrayWidth * y] = M_A[x] + M_B[y];
+    //printf("%d %d\n", M_C[x + arrayWidth * y], x + arrayWidth * y);
 }
