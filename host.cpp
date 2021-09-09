@@ -60,84 +60,51 @@ ocl_args_d_t::~ocl_args_d_t()
 #pragma endregion
 
 #pragma region device boilderplate checks
-bool CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
+void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
 {
     size_t stringLength = 0;
-    cl_int err = CL_SUCCESS;
     bool match = false;
-
-    err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, NULL, &stringLength);
-
+    clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, NULL, &stringLength);
     std::vector<char> platformName(stringLength);
-
-    err = clGetPlatformInfo(platform, CL_PLATFORM_NAME, stringLength, &platformName[0], NULL);
-
+    clGetPlatformInfo(platform, CL_PLATFORM_NAME, stringLength, &platformName[0], NULL);
     if (strstr(&platformName[0], preferredPlatform) != 0) match = true;
-
-    return match;
 }
 cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type deviceType)
 {
     cl_uint numPlatforms = 0;
-    cl_int err = CL_SUCCESS;
-
-    err = clGetPlatformIDs(0, NULL, &numPlatforms);
-
+    clGetPlatformIDs(0, NULL, &numPlatforms);
     if (0 == numPlatforms) return NULL;
-
     std::vector<cl_platform_id> platforms(numPlatforms);
-
-    err = clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
-
+    clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
     for (cl_uint i = 0; i < numPlatforms; i++)
     {
         bool match = true;
         cl_uint numDevices = 0;
-
-        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0))
-        {
-            match = CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
-        }
+        if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0)) CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
 
         if (match)
         {
-            err = clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
+            clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
             if (0 != numDevices) return platforms[i];
         }
     }
-
     return NULL;
 }
-int GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
+void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 {
-    cl_int err = CL_SUCCESS;
-
     size_t stringLength = 0;
-    err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, 0, NULL, &stringLength);
-
+    clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, 0, NULL, &stringLength);
     std::vector<char> platformVersion(stringLength);
-
-    err = clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, stringLength, &platformVersion[0], NULL);
-
+    clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, stringLength, &platformVersion[0], NULL);
     if (strstr(&platformVersion[0], "OpenCL 2.0") != NULL) ocl->platformVersion = OPENCL_VERSION_2_0;
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, 0, NULL, &stringLength);
-
+    clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, 0, NULL, &stringLength);
     std::vector<char> deviceVersion(stringLength);
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, stringLength, &deviceVersion[0], NULL);
-
+    clGetDeviceInfo(ocl->device, CL_DEVICE_VERSION, stringLength, &deviceVersion[0], NULL);
     if (strstr(&deviceVersion[0], "OpenCL 2.0") != NULL) ocl->deviceVersion = OPENCL_VERSION_2_0;
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, 0, NULL, &stringLength);
-
+    clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, 0, NULL, &stringLength);
     std::vector<char> compilerVersion(stringLength);
-
-    err = clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, stringLength, &compilerVersion[0], NULL);
-
+    clGetDeviceInfo(ocl->device, CL_DEVICE_OPENCL_C_VERSION, stringLength, &compilerVersion[0], NULL);
     if (strstr(&compilerVersion[0], "OpenCL C 2.0") != NULL) ocl->compilerVersion = OPENCL_VERSION_2_0;
-
-    return err;
 }
 #pragma endregion
 
@@ -153,10 +120,9 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 }
 
 #pragma region opencl program creation
-int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
+void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
-
     cl_platform_id platformId = FindOpenCLPlatform("Intel", deviceType);
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
@@ -171,8 +137,6 @@ int SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
         cl_command_queue_properties properties = CL_QUEUE_PROFILING_ENABLE;
         ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
     }
-
-    return CL_SUCCESS;
 }
 int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
 {
@@ -200,47 +164,35 @@ int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
     }
     return errorCode;
 }
-int CreateAndBuildProgram(ocl_args_d_t* ocl)
+void CreateAndBuildProgram(ocl_args_d_t* ocl)
 {
-    cl_int err = CL_SUCCESS;
     char* source = NULL;
     size_t src_size = 0;
-    err = ReadSourceFromFile("simple.cl", &source, &src_size);
-    ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, &err);
-    err = clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
-    return err;
+    ReadSourceFromFile("simple.cl", &source, &src_size);
+    ocl->program = clCreateProgramWithSource(ocl->context, 1, (const char**)&source, &src_size, NULL);
+    clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
 }
 #pragma endregion
 
 #pragma region kernel handling
-int CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
-    cl_int err = CL_SUCCESS;
     unsigned int size = arrayHeight * arrayWidth;
     ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputA, NULL);
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputB, NULL);
-    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY, arrayHeight * arrayWidth * sizeof(int), NULL, &err);
-    return CL_SUCCESS;
+    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY, arrayHeight * arrayWidth * sizeof(int), NULL, NULL);
 }
-cl_uint SetKernelArguments(ocl_args_d_t* ocl)
+void SetKernelArguments(ocl_args_d_t* ocl)
 {
-    cl_int err = CL_SUCCESS;
-    err = clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
-    err = clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
-    err = clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
-    return err;
+    clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
+    clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
+    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
 }
-cl_uint ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
+void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
-    cl_int err = CL_SUCCESS;
-
     size_t globalWorkSize[2] = { width, height };
-
-    err = clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
-
-    err = clFinish(ocl->commandQueue);
-
-    return CL_SUCCESS;
+    clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+    clFinish(ocl->commandQueue);
 }
 #pragma endregion
 
@@ -269,10 +221,7 @@ int _tmain(int argc, TCHAR* argv[])
     cl_uint arrayWidth = 1024;
     cl_uint arrayHeight = 1024;
 
-    if (CL_SUCCESS != SetupOpenCL(&ocl, deviceType))
-    {
-        return -1;
-    }
+    SetupOpenCL(&ocl, deviceType);
 
     cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / 64 + 1) * 64;
     cl_int* inputA = (cl_int*)_aligned_malloc(optimizedSize, 4096);
@@ -282,25 +231,13 @@ int _tmain(int argc, TCHAR* argv[])
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput(inputB, arrayWidth, arrayHeight);
 
-    if (CL_SUCCESS != CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight))
-    {
-        return -1;
-    }
-    if (CL_SUCCESS != CreateAndBuildProgram(&ocl))
-    {
-        return -1;
-    }
+    CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
+    CreateAndBuildProgram(&ocl);
 
     ocl.kernel = clCreateKernel(ocl.program, "Add", &err);
 
-    if (CL_SUCCESS != SetKernelArguments(&ocl))
-    {
-        return -1;
-    }
-    if (CL_SUCCESS != ExecuteAddKernel(&ocl, arrayWidth, arrayHeight))
-    {
-        return -1;
-    }
+    SetKernelArguments(&ocl);
+    ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
 
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
