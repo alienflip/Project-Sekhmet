@@ -1,8 +1,9 @@
-constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
 constant uint arrayWidth = 16;
 constant uint arrayHeight = 4;
 
-__kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
+constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP | CLK_FILTER_NEAREST;
+
+__kernel void Add(__global int* A, __global int* B, __global int* C)
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
@@ -36,15 +37,9 @@ __kernel void Add(__global int *M_A, __global int *M_B, __global int *M_C)
         }
     }
 
-    /*
-    for (int i = 0; i < 24; i++) {
-        printf("%d ", surrounding[i]);
-    }printf("\n");
-    printf("\n");
-    */
-    
+    uint M_A = A[x];
+    uint M_B = B[x];
 
-    // output matrix
-    M_C[x + arrayWidth * y] = M_A[x] + M_B[y];
-    //printf("%d %d\n", M_C[x + arrayWidth * y], x + arrayWidth * y);
+    C[x * 1024 + y] = M_A + M_B;
 }
+
