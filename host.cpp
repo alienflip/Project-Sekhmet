@@ -115,7 +115,16 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
-        inputArray[i] = rand();
+        inputArray[i] = 808;
+    }
+}
+
+void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
+{
+    cl_uint array_size = arrayWidth * arrayHeight;
+    for (cl_uint i = 0; i < array_size; ++i)
+    {
+        inputArray[i] = 0;
     }
 }
 
@@ -214,18 +223,18 @@ int _tmain(int argc, TCHAR* argv[])
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
-    cl_uint arrayWidth = 1024;
-    cl_uint arrayHeight = 1024;
+    cl_uint arrayWidth = 2;
+    cl_uint arrayHeight = 2;
 
     SetupOpenCL(&ocl, deviceType);
 
-    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / 64 + 1) * 64;
+    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / arrayWidth + 1) * arrayWidth;
     cl_int* inputA = (cl_int*)_aligned_malloc(optimizedSize, 4096);
     cl_int* inputB = (cl_int*)_aligned_malloc(optimizedSize, 4096);
     cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 4096);
 
     generateInput(inputA, arrayWidth, arrayHeight);
-    generateInput(inputB, arrayWidth, arrayHeight);
+    generateInput_(inputB, arrayWidth, arrayHeight);
 
     CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
     CreateAndBuildProgram(&ocl);
@@ -235,7 +244,11 @@ int _tmain(int argc, TCHAR* argv[])
     SetKernelArguments(&ocl);
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
 
+    printf("\n");
+
     ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
+
+    printf("\nread success\n");
 
     int P = 0;
 
