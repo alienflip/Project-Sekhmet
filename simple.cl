@@ -32,14 +32,11 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
         }
     }
 
-    if (y == 1) {
-        C[x] = A[x];
-    }
-    if (x == 1) {
-        C[x] = A[y];
-    }
+    C[x * arrayWidth + y] = A[x * arrayWidth + y] + B[y * arrayWidth + x];
 
     printf("x: %d Ax: %d Bx: %d\n", x,A[x], B[x]);
     printf("y: %d Ay: %d By: %d\n", y, A[y], B[y]);
+    printf("%d Ax:%d By:%d\n", x * arrayWidth + y, A[x], B[y]);
+    printf("%d Ay:%d Bx:%d\n", x * arrayWidth + y, A[y], B[x]);
 }
 
