@@ -1,0 +1,1 @@
+Passing structs to kernel
