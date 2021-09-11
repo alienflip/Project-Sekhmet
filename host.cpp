@@ -115,7 +115,7 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
-        inputArray[i] = 808;
+        inputArray[i] = rand() % 2;
     }
 }
 
@@ -213,7 +213,7 @@ void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inp
     clFinish(ocl->commandQueue);
     for (unsigned int k = 0; k < size; ++k)
     {
-        printf("%d\n", C[k]);
+        printf("C[%d]: %d\n", k, C[k]);
     }
     clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
 }
@@ -223,8 +223,8 @@ int _tmain(int argc, TCHAR* argv[])
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
-    cl_uint arrayWidth = 2;
-    cl_uint arrayHeight = 2;
+    cl_uint arrayWidth = 16;
+    cl_uint arrayHeight = 16;
 
     SetupOpenCL(&ocl, deviceType);
 
