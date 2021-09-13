@@ -225,12 +225,14 @@ int _tmain(int argc, TCHAR* argv[])
     /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
     ///
     
+    int iteration_count = 10;
+
     printf("in:\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < iteration_count; i++) {
         CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
         SetKernelArguments(&ocl);
 
