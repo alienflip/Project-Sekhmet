@@ -131,7 +131,7 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 {
     cl_int err = CL_SUCCESS;
-    cl_platform_id platformId = FindOpenCLPlatform("NVIDIA", deviceType);
+    cl_platform_id platformId = FindOpenCLPlatform("Nvidia", deviceType);
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
     err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
@@ -152,23 +152,14 @@ int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
 
     FILE* fp = NULL;
     fopen_s(&fp, fileName, "rb");
-    if (fp == NULL)
-    {
-        errorCode = CL_INVALID_VALUE;
-    }
+    if (fp == NULL) errorCode = CL_INVALID_VALUE;
     else {
         fseek(fp, 0, SEEK_END);
         *sourceSize = ftell(fp);
         fseek(fp, 0, SEEK_SET);
-
         *source = new char[*sourceSize];
-        if (*source == NULL)
-        {
-            errorCode = CL_OUT_OF_HOST_MEMORY;
-        }
-        else {
-            fread(*source, 1, *sourceSize, fp);
-        }
+        if (*source == NULL) errorCode = CL_OUT_OF_HOST_MEMORY;
+        else fread(*source, 1, *sourceSize, fp);
     }
     return errorCode;
 }
@@ -213,14 +204,14 @@ void Read(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_i
     int* C = (int*)malloc(sizeof(int) * size);
     clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
     clFinish(ocl->commandQueue);
-    for(int k = 0; k < size; k++)
-    {
-        printf("C[%d]: %d\n", k, C[k]);
-    }
+    for(int k = 0; k < size; k++) printf("C[%d]: %d\n", k, C[k]);
+    free(C);
 }
 
 int _tmain(int argc, TCHAR* argv[])
 {
+    // setup
+
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
@@ -243,13 +234,23 @@ int _tmain(int argc, TCHAR* argv[])
     ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
 
     SetKernelArguments(&ocl);
+
+    // performance analysis
+    LARGE_INTEGER perfFrequency;
+    LARGE_INTEGER performanceCountNDRangeStart;
+    LARGE_INTEGER performanceCountNDRangeStop;
+    bool queueProfilingEnable = true;
+    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
+
+    // main program execution
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-
-    printf("\n");
-
     Read(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
-    printf("\nread success\n");
+    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
+    if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
+    printf("performance counter time %f ms.\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+
+    printf("\n\nread success\n");
 
     int P = 0;
 
