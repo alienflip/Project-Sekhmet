@@ -181,7 +181,7 @@ void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcA, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcB, CL_TRUE, 0, size * sizeof(int), inputB, 0, NULL, NULL);
-    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), NULL, NULL);
+    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outputC, NULL);
 }
 void SetKernelArguments(ocl_args_d_t* ocl)
 {
