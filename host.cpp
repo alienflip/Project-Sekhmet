@@ -118,7 +118,6 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         inputArray[i] = rand() % 2;
     }
 }
-
 void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     cl_uint array_size = arrayWidth * arrayHeight;
@@ -208,7 +207,7 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
-void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
+void Read(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
     int size = (int)(width * height);
     int* C = (int*)malloc(sizeof(int) * size);
@@ -248,7 +247,7 @@ int _tmain(int argc, TCHAR* argv[])
 
     printf("\n");
 
-    ReadAndVerify(&ocl, arrayWidth, arrayHeight, inputA, inputB);
+    Read(&ocl, arrayWidth, arrayHeight, inputA, inputB);
 
     printf("\nread success\n");
 
