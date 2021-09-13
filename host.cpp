@@ -12,7 +12,6 @@
 #define CL_TARGET_OPENCL_VERSION 220
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #pragma endregion
-
 #pragma region opencl object holders
 struct ocl_args_d_t
 {
@@ -59,7 +58,6 @@ ocl_args_d_t::~ocl_args_d_t()
     if (device) err = clReleaseDevice(device);
 }
 #pragma endregion
-
 #pragma region device boilderplate checks
 void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
 {
@@ -172,7 +170,6 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl)
     clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
 }
 #pragma endregion
-
 #pragma region kernel handling
 void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
@@ -198,20 +195,15 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
-void Read(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
-{
-    int size = (int)(width * height);
-    int* C = (int*)malloc(sizeof(int) * size);
-    clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
-    clFinish(ocl->commandQueue);
-    for(int k = 0; k < size; k++) printf("C[%d]: %d\n", k, C[k]);
-    free(C);
-}
-
 int _tmain(int argc, TCHAR* argv[])
 {
-    // setup
+    // performance analysis
+    LARGE_INTEGER perfFrequency;
+    LARGE_INTEGER performanceCountNDRangeStart;
+    LARGE_INTEGER performanceCountNDRangeStop;
+    bool queueProfilingEnable = true;
 
+    // setup
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
@@ -220,6 +212,9 @@ int _tmain(int argc, TCHAR* argv[])
     cl_int size = arrayHeight * arrayWidth;
 
     SetupOpenCL(&ocl, deviceType);
+    CreateAndBuildProgram(&ocl);
+    ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
+
 
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
@@ -228,23 +223,24 @@ int _tmain(int argc, TCHAR* argv[])
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
 
-    CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
-    CreateAndBuildProgram(&ocl);
+    int* C = (int*)malloc(sizeof(int) * size);
 
-    ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
-
-    SetKernelArguments(&ocl);
-
-    // performance analysis
-    LARGE_INTEGER perfFrequency;
-    LARGE_INTEGER performanceCountNDRangeStart;
-    LARGE_INTEGER performanceCountNDRangeStop;
-    bool queueProfilingEnable = true;
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
+
+    CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
+    SetKernelArguments(&ocl);
 
     // main program execution
     ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-    Read(&ocl, arrayWidth, arrayHeight, inputA, inputB);
+    clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
+    clFinish(ocl.commandQueue);
+    for (int k = 0; k < size; k++) printf("C[%d]: %d\n", k, C[k]);
+
+    /*
+    for (int i = 0; i < 10; i++) {
+
+    }
+    */
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
@@ -257,6 +253,7 @@ int _tmain(int argc, TCHAR* argv[])
     free(inputA);
     free(inputB);
     free(outputC);
+    free(C);
 
     return 0;
 }
