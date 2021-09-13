@@ -53,6 +53,7 @@ ocl_args_d_t::~ocl_args_d_t()
     if (kernel) err = clReleaseKernel(kernel);
     if (program) err = clReleaseProgram(program);
     if (srcA) err = clReleaseMemObject(srcA);
+    if (srcB) err = clReleaseMemObject(srcB);
     if (dstMem) err = clReleaseMemObject(dstMem);
     if (commandQueue) err = clReleaseCommandQueue(commandQueue);
     if (device) err = clReleaseDevice(device);
@@ -110,8 +111,7 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 
 void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
-    srand(12345);
-
+    srand(34);
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
@@ -187,9 +187,11 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl)
 void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     unsigned int size = arrayHeight * arrayWidth;
-    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputA, NULL);
-    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size, inputB, NULL);
-    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY, arrayHeight * arrayWidth * sizeof(int), NULL, NULL);
+    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
+    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
+    clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcA, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
+    clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcB, CL_TRUE, 0, size * sizeof(int), inputB, 0, NULL, NULL);
+    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), NULL, NULL);
 }
 void SetKernelArguments(ocl_args_d_t* ocl)
 {
@@ -199,23 +201,23 @@ void SetKernelArguments(ocl_args_d_t* ocl)
 }
 void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
-    size_t globalWorkSize[2] = { width, height };
-    clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 2, NULL, globalWorkSize, NULL, 0, NULL, NULL);
+    size_t global_item_size = width * height;
+    size_t local_item_size = 64; // Divide work items into groups of 64
+    clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     clFinish(ocl->commandQueue);
 }
 #pragma endregion
 
 void ReadAndVerify(ocl_args_d_t* ocl, cl_uint width, cl_uint height, cl_int* inputA, cl_int* inputB)
 {
-    unsigned int size = width * height;
+    int size = (int)(width * height);
     int* C = (int*)malloc(sizeof(int) * size);
-    cl_int* resultPtr = (cl_int*)clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
+    clEnqueueReadBuffer(ocl->commandQueue, ocl->dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
     clFinish(ocl->commandQueue);
-    for (unsigned int k = 0; k < size; ++k)
+    for(int k = 0; k < size; k++)
     {
         printf("C[%d]: %d\n", k, C[k]);
     }
-    clEnqueueUnmapMemObject(ocl->commandQueue, ocl->dstMem, resultPtr, 0, NULL, NULL);
 }
 
 int _tmain(int argc, TCHAR* argv[])
@@ -225,13 +227,13 @@ int _tmain(int argc, TCHAR* argv[])
 
     cl_uint arrayWidth = 16;
     cl_uint arrayHeight = 16;
+    cl_int size = arrayHeight * arrayWidth;
 
     SetupOpenCL(&ocl, deviceType);
 
-    cl_uint optimizedSize = ((sizeof(cl_int) * arrayWidth * arrayHeight - 1) / arrayWidth + 1) * arrayWidth;
-    cl_int* inputA = (cl_int*)_aligned_malloc(optimizedSize, 4096);
-    cl_int* inputB = (cl_int*)_aligned_malloc(optimizedSize, 4096);
-    cl_int* outputC = (cl_int*)_aligned_malloc(optimizedSize, 4096);
+    cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
+    cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
+    cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
 
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
@@ -252,9 +254,9 @@ int _tmain(int argc, TCHAR* argv[])
 
     int P = 0;
 
-    _aligned_free(inputA);
-    _aligned_free(inputB);
-    _aligned_free(outputC);
+    free(inputA);
+    free(inputB);
+    free(outputC);
 
     return 0;
 }
