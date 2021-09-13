@@ -22,6 +22,6 @@ __kernel void Add(__global int* A, __global int* B, __global int* C)
     }
     */
 
-    printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
+    //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
     C[x + arrayWidth * y] = A[x + arrayWidth * y] + B[x + arrayWidth * y];
 }
