@@ -235,6 +235,7 @@ int _tmain(int argc, TCHAR* argv[])
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
+        
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
