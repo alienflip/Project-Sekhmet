@@ -1,3 +1,4 @@
+#pragma region library declararions
 #include <stdio.h>
 #include <stdlib.h>
 #include <tchar.h>
@@ -5,6 +6,7 @@
 #include <vector>
 #include <Windows.h>
 #include "CL\cl.h"
+#pragma endregion
 
 #pragma region opencl version defs
 #define OPENCL_VERSION_1_2  1.2f
@@ -12,6 +14,7 @@
 #define CL_TARGET_OPENCL_VERSION 220
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #pragma endregion
+
 #pragma region opencl object holders
 struct ocl_args_d_t
 {
