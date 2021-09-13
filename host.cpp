@@ -121,7 +121,7 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i)
     {
-        inputArray[i] = 0;
+        inputArray[i] = 1;
     }
 }
 
@@ -215,36 +215,42 @@ int _tmain(int argc, TCHAR* argv[])
     CreateAndBuildProgram(&ocl);
     ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
 
-
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
     cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
-
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
 
-    int* C = (int*)malloc(sizeof(int) * size);
+    ///
+    /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
+    ///
+    
+    printf("in:\n");
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
 
-    CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
-    SetKernelArguments(&ocl);
-
-    // main program execution
-    ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-    clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), C, 0, NULL, NULL);
-    clFinish(ocl.commandQueue);
-    for (int k = 0; k < size; k++) printf("C[%d]: %d\n", k, C[k]);
-
-    /*
     for (int i = 0; i < 10; i++) {
+        CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
+        SetKernelArguments(&ocl);
 
+        ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
+        clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     }
-    */
+    
+    ///
+    /// finish main program
+    ///
+
+    clFinish(ocl.commandQueue);
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("performance counter time %f ms.\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    printf("\nperformance counter time %f ms.\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    
+    printf("out:\n\n");
+
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     printf("\n\nread success\n");
 
@@ -253,7 +259,6 @@ int _tmain(int argc, TCHAR* argv[])
     free(inputA);
     free(inputB);
     free(outputC);
-    free(C);
 
     return 0;
 }
