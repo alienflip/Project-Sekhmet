@@ -61,6 +61,7 @@ ocl_args_d_t::~ocl_args_d_t()
     if (device) err = clReleaseDevice(device);
 }
 #pragma endregion
+
 #pragma region device boilderplate checks
 void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform)
 {
@@ -110,6 +111,7 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl)
 }
 #pragma endregion
 
+#pragma region initialise inputs
 void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(34);
@@ -127,6 +129,7 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         inputArray[i] = 1;
     }
 }
+#pragma endregion
 
 #pragma region opencl program creation
 void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
@@ -173,6 +176,7 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl)
     clBuildProgram(ocl->program, 1, &ocl->device, "", NULL, NULL);
 }
 #pragma endregion
+
 #pragma region kernel handling
 void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
 {
@@ -227,10 +231,10 @@ int _tmain(int argc, TCHAR* argv[])
     ///
     /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
     ///
-    
+
     int iteration_count = 10;
 
-    printf("in:\n");
+    printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
@@ -238,7 +242,7 @@ int _tmain(int argc, TCHAR* argv[])
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
-        
+
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
@@ -246,17 +250,15 @@ int _tmain(int argc, TCHAR* argv[])
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     }
-    
-    ///
-    /// finish main program
-    ///
 
-    clFinish(ocl.commandQueue);
+    ///
+    /// finish main program, print benchmarking
+    ///
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nperformance counter time %f ms.\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
-    
+    printf("\nperformance counter time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+
     printf("out:\n\n");
 
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
@@ -265,6 +267,7 @@ int _tmain(int argc, TCHAR* argv[])
 
     int P = 0;
 
+    clFinish(ocl.commandQueue);
     free(inputA);
     free(inputB);
     free(outputC);
