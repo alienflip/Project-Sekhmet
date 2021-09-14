@@ -207,6 +207,7 @@ int _tmain(int argc, TCHAR* argv[]){
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
     bool queueProfilingEnable = true;
+    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
 
     // setup
     ocl_args_d_t ocl;
@@ -236,7 +237,6 @@ int _tmain(int argc, TCHAR* argv[]){
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
     printf("\n");
 
-    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
     int iteration_count = 10;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
@@ -258,16 +258,14 @@ int _tmain(int argc, TCHAR* argv[]){
     /// finish main program, print benchmarking
     ///
 
-    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
-    if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nperformance counter time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
-
     printf("out:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     printf("\n\nread success\n");
 
-    int P = 0;
+    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
+    if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
+    printf("\nperformance counter time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     clFinish(ocl.commandQueue);
     free(inputA);
