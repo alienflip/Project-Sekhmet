@@ -1,9 +1,11 @@
 constant int arrayWidth = 8;
 constant int arrayHeight = 4;
-__kernel void Add(__global int* A, __global int* B, __global int* C, __global int* averages)
+__kernel void Add(__global int* A, __global int* B, __global int* averages, __global int* C)
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
+
+    printf("%d %d %d %d %d \n", averages[0], averages[1], averages[2], averages[3]);
 
     /*
     int surrounding[9] = {};
@@ -23,5 +25,6 @@ __kernel void Add(__global int* A, __global int* B, __global int* C, __global in
     */
 
     //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
+
     C[x + arrayWidth * y] = A[x + arrayWidth * y] + B[x + arrayWidth * y];
 }
