@@ -1,9 +1,10 @@
 constant int arrayWidth = 16;
-constant int arrayHeight = 4;
 __kernel void Add(__global int* A, __global int* B, __global int* averages, __global int* C)
 {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
+
+    int arrayHeight = arrayWidth / 4;
 
     //printf("%d %d %d %d %d \n", averages[0], averages[1], averages[2], averages[3]);
     int ave_x = averages[0];
