@@ -114,7 +114,7 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) 
 }
 void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) {
     cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 1;
+    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 0;
 }
 void generateInput__(cl_int* inputArray) {
     for (int i = 0; i < 4; i++) inputArray[i] = 0;
@@ -188,20 +188,16 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 #pragma endregion
 
 void calculateAverages(cl_int* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
-    for (int i = 0; i < 4; i++) averagesArray[i] = 0;
-    for (int i = 0; i < arrayHeight * arrayWidth; i++) {
-        if (i % 4 == 0) averagesArray[0] += inputA[i];
-        else if ((i + 1) % 4) averagesArray[1] += inputA[i];
-        else if ((i + 2) % 4) averagesArray[2] += inputA[i];
-        else if ((i + 3) % 4) averagesArray[3] += inputA[i];
+    int i;
+    for (i = 0; i < 4; i++) averagesArray[i] = 0;
+    for (i = 0; i < arrayHeight * arrayWidth; i++) {
+        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += inputA[i];
     }
-    averagesArray[0] = (int)((float)averagesArray[0] / (float)(arrayHeight * arrayWidth));
-    averagesArray[1] = (int)((float)averagesArray[1] / (float)(arrayHeight * arrayWidth));
-    averagesArray[2] = (int)((float)averagesArray[2] / (float)(arrayHeight * arrayWidth));
-    averagesArray[3] = (int)((float)averagesArray[3] / (float)(arrayHeight * arrayWidth));
+    for(i = 0; i < 4; i++) averagesArray[i] = (int)((float)averagesArray[i] / (float)(arrayHeight * arrayWidth));
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
+
     // performance analysis
     LARGE_INTEGER perfFrequency;
     LARGE_INTEGER performanceCountNDRangeStart;
@@ -213,7 +209,8 @@ int _tmain(int argc, TCHAR* argv[]) {
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
-    cl_uint arrayWidth = 16;
+    // arrayWidth and arrayHeight must be powers of two
+    cl_uint arrayWidth = 64;    
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
@@ -230,7 +227,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     generateInput__(averagesArray);
 
     ///
-    /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
+    /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu etc
     ///
 
     printf("in:\n\n");
@@ -240,6 +237,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("averages:\n\n");
 
     int iteration_count = 10;
+
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputA, inputB, outputC, averagesArray, arrayWidth, arrayHeight);
