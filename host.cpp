@@ -32,8 +32,8 @@ struct ocl_args_d_t
 
     cl_mem           srcA;              // hold first source buffer
     cl_mem           srcB;              // hold second source buffer
-    cl_mem           dstMem;            // hold destination buffer
     cl_mem           averages;           // hold previous averages
+    cl_mem           dstMem;            // hold destination buffer
 };
 ocl_args_d_t::ocl_args_d_t() :
     context(NULL),
@@ -46,8 +46,8 @@ ocl_args_d_t::ocl_args_d_t() :
     compilerVersion(OPENCL_VERSION_1_2),
     srcA(NULL),
     srcB(NULL),
-    dstMem(NULL),
-    averages(NULL)
+    averages(NULL),
+    dstMem(NULL)
 {
 }
 ocl_args_d_t::~ocl_args_d_t()
@@ -58,8 +58,8 @@ ocl_args_d_t::~ocl_args_d_t()
     if (program) err = clReleaseProgram(program);
     if (srcA) err = clReleaseMemObject(srcA);
     if (srcB) err = clReleaseMemObject(srcB);
-    if (dstMem) err = clReleaseMemObject(dstMem);
     if (averages) err = clReleaseMemObject(averages);
+    if (dstMem) err = clReleaseMemObject(dstMem);
     if (commandQueue) err = clReleaseCommandQueue(commandQueue);
     if (device) err = clReleaseDevice(device);
 }
@@ -196,8 +196,8 @@ void SetKernelArguments(ocl_args_d_t* ocl)
 {
     clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
     clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
-    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
-    clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->averages);
+    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->averages);
+    clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->dstMem);
 
 }
 void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
@@ -231,8 +231,8 @@ int _tmain(int argc, TCHAR* argv[])
 
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
-    cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
     cl_int* averagesArray = (cl_int*)malloc(sizeof(int) * 4);
+    cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
     averagesArray[0] = (cl_uint)1;
@@ -261,7 +261,7 @@ int _tmain(int argc, TCHAR* argv[])
 
         // averages
         x = 0;
-        y = 0; 
+        y = 0;
         vx = 0;
         vy = 0;
         if (i > 1) {
