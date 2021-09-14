@@ -207,6 +207,7 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 #pragma endregion
 
 void calculateAverages(cl_int* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
+    for (int i = 0; i < 4; i++) averagesArray[i] = 0;
     for (int i = 0; i < arrayHeight * arrayWidth; i++) {
         if (i % 4 == 0) averagesArray[0] += inputA[i];
         else if ((i + 1) % 4) averagesArray[1] += inputA[i];
@@ -256,7 +257,6 @@ int _tmain(int argc, TCHAR* argv[])
     printf("\n");
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
-    int x = 0, y = 0, vx = 0, vy = 0;
     int iteration_count = 10;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
@@ -270,12 +270,9 @@ int _tmain(int argc, TCHAR* argv[])
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
         
         // averages
-        x = 0, y = 0, vx = 0, vy = 0;
-        if (i > 1) calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
+        calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
         printf("%d %d %d %d\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
     }
-
-    printf("%d %d %d %d\n", x, y, vx, vy);
 
     ///
     /// finish main program, print benchmarking
