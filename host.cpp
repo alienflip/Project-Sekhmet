@@ -33,6 +33,7 @@ struct ocl_args_d_t
     cl_mem           srcA;              // hold first source buffer
     cl_mem           srcB;              // hold second source buffer
     cl_mem           dstMem;            // hold destination buffer
+    cl_mem           averages;           // hold previous averages
 };
 ocl_args_d_t::ocl_args_d_t() :
     context(NULL),
@@ -45,7 +46,8 @@ ocl_args_d_t::ocl_args_d_t() :
     compilerVersion(OPENCL_VERSION_1_2),
     srcA(NULL),
     srcB(NULL),
-    dstMem(NULL)
+    dstMem(NULL),
+    averages(NULL)
 {
 }
 ocl_args_d_t::~ocl_args_d_t()
@@ -57,6 +59,7 @@ ocl_args_d_t::~ocl_args_d_t()
     if (srcA) err = clReleaseMemObject(srcA);
     if (srcB) err = clReleaseMemObject(srcB);
     if (dstMem) err = clReleaseMemObject(dstMem);
+    if (averages) err = clReleaseMemObject(averages);
     if (commandQueue) err = clReleaseCommandQueue(commandQueue);
     if (device) err = clReleaseDevice(device);
 }
@@ -178,13 +181,15 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl)
 #pragma endregion
 
 #pragma region kernel handling
-void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight)
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_int* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     unsigned int size = arrayHeight * arrayWidth;
     ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
+    ocl->averages = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 4 * sizeof(int), averagesInput, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcA, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcB, CL_TRUE, 0, size * sizeof(int), inputB, 0, NULL, NULL);
+    clEnqueueWriteBuffer(ocl->commandQueue, ocl->averages, CL_TRUE, 0, 4 * sizeof(int), averagesInput, 0, NULL, NULL);
     ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outputC, NULL);
 }
 void SetKernelArguments(ocl_args_d_t* ocl)
@@ -192,6 +197,8 @@ void SetKernelArguments(ocl_args_d_t* ocl)
     clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
     clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
     clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->dstMem);
+    clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->averages);
+
 }
 void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
@@ -215,7 +222,7 @@ int _tmain(int argc, TCHAR* argv[])
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
     cl_uint arrayWidth = 16;
-    cl_uint arrayHeight = 16;
+    cl_uint arrayHeight = arrayWidth / 2;
     cl_int size = arrayHeight * arrayWidth;
 
     SetupOpenCL(&ocl, deviceType);
@@ -225,8 +232,13 @@ int _tmain(int argc, TCHAR* argv[])
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
     cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
+    cl_int* averagesArray = (cl_int*)malloc(sizeof(int) * 4);
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
+    averagesArray[0] = (cl_uint)1;
+    averagesArray[1] = (cl_uint)0;
+    averagesArray[2] = (cl_uint)-1;
+    averagesArray[3] = (cl_uint)2;
 
     ///
     /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
@@ -238,15 +250,32 @@ int _tmain(int argc, TCHAR* argv[])
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
-
+    int x = 0, y = 0, vx = 0, vy = 0;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
-        CreateBufferArguments(&ocl, inputA, inputB, outputC, arrayWidth, arrayHeight);
+        CreateBufferArguments(&ocl, inputA, inputB, outputC, averagesArray, arrayWidth, arrayHeight);
 
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
 
+        // averages
+        x = 0;
+        y = 0; 
+        vx = 0;
+        vy = 0;
+        if (i > 1) {
+            for (int i = 0; i < arrayHeight * arrayWidth; i++) {
+                if (i % 4 == 0 && i % 2 != 0 && i % 3 != 0) x += outputC[i];
+                else if (i % 3 == 0 && i % 2 != 0 && i % 4 != 0) y += outputC[i];
+                else if (i % 2 == 0 && i % 4 != 0 && i % 3 != 0) vx += outputC[i];
+                else vy += outputC[i];
+            }
+            x = (int)((float)x / (float)(arrayHeight * arrayWidth));
+            y = (int)((float)y / (float)(arrayHeight * arrayWidth));
+            vx = (int)((float)vx / (float)(arrayHeight * arrayWidth));
+            vy = (int)((float)vy / (float)(arrayHeight * arrayWidth));
+        }
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     }
