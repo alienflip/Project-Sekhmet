@@ -237,6 +237,8 @@ int _tmain(int argc, TCHAR* argv[]) {
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
     printf("\n");
 
+    printf("averages:\n\n");
+
     int iteration_count = 10;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
@@ -258,14 +260,13 @@ int _tmain(int argc, TCHAR* argv[]) {
     /// finish main program, print benchmarking
     ///
 
+    printf("\n");
     printf("out:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
-    printf("\n\nread success\n");
-
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nperformance counter time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     clFinish(ocl.commandQueue);
     free(inputA);
