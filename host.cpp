@@ -50,7 +50,7 @@ ocl_args_d_t::ocl_args_d_t() :
     dstMem(NULL)
 {
 }
-ocl_args_d_t::~ocl_args_d_t(){
+ocl_args_d_t::~ocl_args_d_t() {
     cl_int err = CL_SUCCESS;
     if (kernel) err = clReleaseKernel(kernel);
     if (program) err = clReleaseProgram(program);
@@ -64,7 +64,7 @@ ocl_args_d_t::~ocl_args_d_t(){
 #pragma endregion
 
 #pragma region device boilderplate checks
-void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform){
+void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredPlatform) {
     size_t stringLength = 0;
     bool match = false;
     clGetPlatformInfo(platform, CL_PLATFORM_NAME, 0, NULL, &stringLength);
@@ -72,7 +72,7 @@ void CheckPreferredPlatformMatch(cl_platform_id platform, const char* preferredP
     clGetPlatformInfo(platform, CL_PLATFORM_NAME, stringLength, &platformName[0], NULL);
     if (strstr(&platformName[0], preferredPlatform) != 0) match = true;
 }
-cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type deviceType){
+cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type deviceType) {
     cl_uint numPlatforms = 0;
     clGetPlatformIDs(0, NULL, &numPlatforms);
     if (0 == numPlatforms) return NULL;
@@ -89,7 +89,7 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
     }
     return NULL;
 }
-void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl){
+void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl) {
     size_t stringLength = 0;
     clGetPlatformInfo(platformId, CL_PLATFORM_VERSION, 0, NULL, &stringLength);
     std::vector<char> platformVersion(stringLength);
@@ -107,12 +107,12 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl){
 #pragma endregion
 
 #pragma region initialise inputs
-void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight){
+void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) {
     srand(34);
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = rand() % 2;
 }
-void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight){
+void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) {
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 1;
 }
@@ -122,7 +122,7 @@ void generateInput__(cl_int* inputArray) {
 #pragma endregion
 
 #pragma region opencl program creation
-void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType){
+void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType) {
     cl_int err = CL_SUCCESS;
     cl_platform_id platformId = FindOpenCLPlatform("Nvidia", deviceType);
     cl_context_properties contextProperties[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)platformId, 0 };
@@ -138,7 +138,7 @@ void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType){
         ocl->commandQueue = clCreateCommandQueue(ocl->context, ocl->device, properties, &err);
     }
 }
-int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize){
+int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize) {
     int errorCode = CL_SUCCESS;
     FILE* fp = NULL;
     fopen_s(&fp, fileName, "rb");
@@ -153,7 +153,7 @@ int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize){
     }
     return errorCode;
 }
-void CreateAndBuildProgram(ocl_args_d_t* ocl){
+void CreateAndBuildProgram(ocl_args_d_t* ocl) {
     char* source = NULL;
     size_t src_size = 0;
     ReadSourceFromFile("simple.cl", &source, &src_size);
@@ -163,7 +163,7 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl){
 #pragma endregion
 
 #pragma region kernel handling
-void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_int* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight){
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_int* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight) {
     unsigned int size = arrayHeight * arrayWidth;
     ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
@@ -173,13 +173,13 @@ void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->averages, CL_TRUE, 0, 4 * sizeof(int), averagesInput, 0, NULL, NULL);
     ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outputC, NULL);
 }
-void SetKernelArguments(ocl_args_d_t* ocl){
+void SetKernelArguments(ocl_args_d_t* ocl) {
     clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
     clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
     clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->averages);
     clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->dstMem);
 }
-void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height){
+void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
     size_t global_item_size = width * height;
     size_t local_item_size = 64; // Divide work items into groups of 64
     clEnqueueNDRangeKernel(ocl->commandQueue, ocl->kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
@@ -201,7 +201,7 @@ void calculateAverages(cl_int* averagesArray, cl_int* inputA, int arrayHeight, i
     averagesArray[3] = (int)((float)averagesArray[3] / (float)(arrayHeight * arrayWidth));
 }
 
-int _tmain(int argc, TCHAR* argv[]){
+int _tmain(int argc, TCHAR* argv[]) {
     // performance analysis
     LARGE_INTEGER perfFrequency;
     LARGE_INTEGER performanceCountNDRangeStart;
