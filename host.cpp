@@ -119,18 +119,12 @@ void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     srand(34);
     cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i)
-    {
-        inputArray[i] = rand() % 2;
-    }
+    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = rand() % 2;
 }
 void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
 {
     cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i)
-    {
-        inputArray[i] = 1;
-    }
+    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 1;
 }
 void generateInput__(cl_int* inputArray) {
     for (int i = 0; i < 4; i++) inputArray[i] = 0;
@@ -277,10 +271,8 @@ int _tmain(int argc, TCHAR* argv[])
         
         // averages
         x = 0, y = 0, vx = 0, vy = 0;
-        if (i > 1) {
-            calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
-            printf("%d %d %d %d\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
-        }
+        if (i > 1) calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
+        printf("%d %d %d %d\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
     }
 
     printf("%d %d %d %d\n", x, y, vx, vy);
