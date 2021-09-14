@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <vector>
 #include <Windows.h>
+#include <math.h>
 #include "CL\cl.h"
 #pragma endregion
 
@@ -153,7 +154,6 @@ void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType)
 int ReadSourceFromFile(const char* fileName, char** source, size_t* sourceSize)
 {
     int errorCode = CL_SUCCESS;
-
     FILE* fp = NULL;
     fopen_s(&fp, fileName, "rb");
     if (fp == NULL) errorCode = CL_INVALID_VALUE;
@@ -195,7 +195,6 @@ void SetKernelArguments(ocl_args_d_t* ocl)
     clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
     clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->averages);
     clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->dstMem);
-
 }
 void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 {
