@@ -132,6 +132,9 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
         inputArray[i] = 1;
     }
 }
+void generateInput__(cl_int* inputArray) {
+    for (int i = 0; i < 4; i++) inputArray[i] = 0;
+}
 #pragma endregion
 
 #pragma region opencl program creation
@@ -209,6 +212,19 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height)
 }
 #pragma endregion
 
+void calculateAverages(cl_int* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
+    for (int i = 0; i < arrayHeight * arrayWidth; i++) {
+        if (i % 4 == 0) averagesArray[0] += inputA[i];
+        else if ((i + 1) % 4) averagesArray[1] += inputA[i];
+        else if ((i + 2) % 4) averagesArray[2] += inputA[i];
+        else if ((i + 3) % 4) averagesArray[3] += inputA[i];
+    }
+    averagesArray[0] = (int)((float)averagesArray[0] / (float)(arrayHeight * arrayWidth));
+    averagesArray[1] = (int)((float)averagesArray[1] / (float)(arrayHeight * arrayWidth));
+    averagesArray[2] = (int)((float)averagesArray[2] / (float)(arrayHeight * arrayWidth));
+    averagesArray[3] = (int)((float)averagesArray[3] / (float)(arrayHeight * arrayWidth));
+}
+
 int _tmain(int argc, TCHAR* argv[])
 {
     // performance analysis
@@ -235,22 +251,19 @@ int _tmain(int argc, TCHAR* argv[])
     cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
-    averagesArray[0] = (cl_uint)1;
-    averagesArray[1] = (cl_uint)0;
-    averagesArray[2] = (cl_uint)-1;
-    averagesArray[3] = (cl_uint)2;
+    generateInput__(averagesArray);
 
     ///
     /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu
     ///
 
-    int iteration_count = 10;
-
     printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    printf("\n");
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
     int x = 0, y = 0, vx = 0, vy = 0;
+    int iteration_count = 10;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputA, inputB, outputC, averagesArray, arrayWidth, arrayHeight);
@@ -258,27 +271,19 @@ int _tmain(int argc, TCHAR* argv[])
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-
-        // averages
-        x = 0;
-        y = 0;
-        vx = 0;
-        vy = 0;
-        if (i > 1) {
-            for (int i = 0; i < arrayHeight * arrayWidth; i++) {
-                if (i % 4 == 0 && i % 2 != 0 && i % 3 != 0) x += outputC[i];
-                else if (i % 3 == 0 && i % 2 != 0 && i % 4 != 0) y += outputC[i];
-                else if (i % 2 == 0 && i % 4 != 0 && i % 3 != 0) vx += outputC[i];
-                else vy += outputC[i];
-            }
-            x = (int)((float)x / (float)(arrayHeight * arrayWidth));
-            y = (int)((float)y / (float)(arrayHeight * arrayWidth));
-            vx = (int)((float)vx / (float)(arrayHeight * arrayWidth));
-            vy = (int)((float)vy / (float)(arrayHeight * arrayWidth));
-        }
+        
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
+        
+        // averages
+        x = 0, y = 0, vx = 0, vy = 0;
+        if (i > 1) {
+            calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
+            printf("%d %d %d %d\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
+        }
     }
+
+    printf("%d %d %d %d\n", x, y, vx, vy);
 
     ///
     /// finish main program, print benchmarking
@@ -289,7 +294,6 @@ int _tmain(int argc, TCHAR* argv[])
     printf("\nperformance counter time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     printf("out:\n\n");
-
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     printf("\n\nread success\n");
