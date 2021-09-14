@@ -5,7 +5,6 @@
 #include <memory.h>
 #include <vector>
 #include <Windows.h>
-#include <math.h>
 #include "CL\cl.h"
 #pragma endregion
 
@@ -116,7 +115,7 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 0;
 }
-void generateInput__(cl_int* inputArray) {
+void generateInput__(cl_float* inputArray) {
     for (int i = 0; i < 4; i++) inputArray[i] = 0;
 }
 #pragma endregion
@@ -163,14 +162,14 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl) {
 #pragma endregion
 
 #pragma region kernel handling
-void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_int* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight) {
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_float* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight) {
     unsigned int size = arrayHeight * arrayWidth;
     ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
-    ocl->averages = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 4 * sizeof(int), averagesInput, NULL);
+    ocl->averages = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 4 * sizeof(float), averagesInput, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcA, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcB, CL_TRUE, 0, size * sizeof(int), inputB, 0, NULL, NULL);
-    clEnqueueWriteBuffer(ocl->commandQueue, ocl->averages, CL_TRUE, 0, 4 * sizeof(int), averagesInput, 0, NULL, NULL);
+    clEnqueueWriteBuffer(ocl->commandQueue, ocl->averages, CL_TRUE, 0, 4 * sizeof(float), averagesInput, 0, NULL, NULL);
     ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outputC, NULL);
 }
 void SetKernelArguments(ocl_args_d_t* ocl) {
@@ -187,13 +186,13 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
-void calculateAverages(cl_int* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
+void calculateAverages(cl_float* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = 0;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += inputA[i];
+        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (cl_float)inputA[i];
     }
-    for(i = 0; i < 4; i++) averagesArray[i] = (int)((float)averagesArray[i] / (float)(arrayHeight * arrayWidth));
+    for(i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -220,7 +219,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
-    cl_int* averagesArray = (cl_int*)malloc(sizeof(int) * 4);
+    cl_float* averagesArray = (cl_float*)malloc(sizeof(float) * 4);
     cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
     generateInput(inputA, arrayWidth, arrayHeight);
     generateInput_(inputB, arrayWidth, arrayHeight);
@@ -262,14 +261,14 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("out:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
-    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
-    if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
-
     clFinish(ocl.commandQueue);
     free(inputA);
     free(inputB);
     free(outputC);
+
+    if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
+    if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
+    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     return 0;
 }
