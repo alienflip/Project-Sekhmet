@@ -1,4 +1,4 @@
-constant int arrayWidth = 8;
+constant int arrayWidth = 16;
 constant int arrayHeight = 4;
 __kernel void Add(__global int* A, __global int* B, __global int* averages, __global int* C)
 {
