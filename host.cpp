@@ -232,7 +232,7 @@ int _tmain(int argc, TCHAR* argv[])
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
     cl_uint arrayWidth = 16;
-    cl_uint arrayHeight = arrayWidth / 2;
+    cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
     SetupOpenCL(&ocl, deviceType);
