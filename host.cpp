@@ -251,7 +251,7 @@ int _tmain(int argc, TCHAR* argv[]) {
         // averages
         calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
 
-        printf("%f %f %f %f\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
+        //printf("%f %f %f %f\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
     }
 
     ///
