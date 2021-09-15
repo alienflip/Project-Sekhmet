@@ -1,16 +1,28 @@
-constant int arrayWidth = 16;
-__kernel void Add(__global int* A, __global int* B, __global int* averages, __global int* C)
-{
+constant int arrayWidth = 64;
+__kernel void Add(__global int* A, __global int* B, __global float* averages, __global int* C){
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
-    int arrayHeight = arrayWidth / 4;
+    const int arrayHeight = arrayWidth / 4;
 
     //printf("%d %d %d %d %d \n", averages[0], averages[1], averages[2], averages[3]);
-    int ave_x = averages[0];
-    int ave_y = averages[1];
-    int ave_vx = averages[2];
-    int ave_vy = averages[3];
+    
+    float ave_x = averages[0];
+    float ave_y = averages[1];
+    float ave_vx = averages[2];
+    float ave_vy = averages[3];
+
+    int steer_x = 0, steer_y = 0;
+
+    if (ave_x > 0.5) steer_x += 1;
+    if (ave_y > 0.5) steer_y += 1;
+    if (ave_vx > 0.5) steer_vx += 1;
+    if (ave_vy > 0.5) steer_vy += 1;
+
+    if (ave_x < -0.5) steer_x -= 1;
+    if (ave_y < -0.5) steer_y -= 1;
+    if (ave_vx < -0.5) steer_vx -= 1;
+    if (ave_vy < -0.5) steer_vy -= 1;
 
     /*
     int surrounding[9] = {};
@@ -30,6 +42,5 @@ __kernel void Add(__global int* A, __global int* B, __global int* averages, __gl
     */
 
     //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
-
-    C[x + arrayWidth * y] = (A[x + arrayWidth * y] + B[x + arrayWidth * y]) % 2;
+    C[x + arrayWidth * y] = (A[x + arrayWidth * y] + B[x + arrayWidth * y]);
 }
