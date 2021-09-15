@@ -116,7 +116,7 @@ void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight)
     for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 0;
 }
 void generateInput__(cl_float* inputArray) {
-    for (int i = 0; i < 4; i++) inputArray[i] = 0;
+    for (cl_uint i = 0; i < 4; i++) inputArray[i] = (cl_float)0.0f;
 }
 #pragma endregion
 
@@ -162,7 +162,7 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl) {
 #pragma endregion
 
 #pragma region kernel handling
-void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_int* outputC, cl_float* averagesInput, cl_uint arrayWidth, cl_uint arrayHeight) {
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_float* averagesInput, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight) {
     unsigned int size = arrayHeight * arrayWidth;
     ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
     ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
@@ -186,11 +186,11 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
-void calculateAverages(cl_float* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
+void calculateAverages(float* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
     int i;
-    for (i = 0; i < 4; i++) averagesArray[i] = 0;
+    for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (cl_float)inputA[i];
+        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputA[i];
     }
     for(i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
@@ -239,7 +239,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
-        CreateBufferArguments(&ocl, inputA, inputB, outputC, averagesArray, arrayWidth, arrayHeight);
+        CreateBufferArguments(&ocl, inputA, inputB, averagesArray, outputC, arrayWidth, arrayHeight);
 
         // execute kernel
         SetKernelArguments(&ocl);
@@ -250,7 +250,8 @@ int _tmain(int argc, TCHAR* argv[]) {
         
         // averages
         calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
-        printf("%d %d %d %d\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
+
+        printf("%f %f %f %f\n", averagesArray[0], averagesArray[1], averagesArray[2], averagesArray[3]);
     }
 
     ///
@@ -259,7 +260,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("\n");
     printf("out:\n\n");
-    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     clFinish(ocl.commandQueue);
     free(inputA);
@@ -268,7 +269,8 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    printf("\nsuccess: execution time %f ms.\n\n", 
+        1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     return 0;
 }
