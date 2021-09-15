@@ -16,13 +16,15 @@ __kernel void Add(__global int* A, __global int* B, __global float* averages, __
     int steer_y = 0;
     
     if (ave_x > 0.5) steer_x += 1; 
-    if (ave_y > 0.5) steer_y += 1; 
-    if (ave_vx > 0.5) steer_x += 1; 
-    if (ave_vy > 0.5) steer_y += 1; 
+    if (ave_x < -0.5) steer_x -= 1;
 
-    if (ave_x < -0.5) steer_x -= 1; 
-    if (ave_y < -0.5) steer_y -= 1; 
-    if (ave_vx < -0.5) steer_x -= 1; 
+    if (ave_y > 0.5) steer_y += 1;
+    if (ave_y < -0.5) steer_y -= 1;
+
+    if (ave_vx > 0.5) steer_x += 1;
+    if (ave_vx < -0.5) steer_x -= 1;
+
+    if (ave_vy > 0.5) steer_y += 1;
     if (ave_vy < -0.5) steer_y -= 1; 
     
     int surrounding[36] = {};
@@ -39,5 +41,10 @@ __kernel void Add(__global int* A, __global int* B, __global float* averages, __
     }
 
     //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
+
+    for (i = 0; i < arrayHeight * arrayWidth; i++) {
+        for (int j = 0; j < 4; j++) if ((i + j) % 4) C[j] = surrounding[j]; // calculate C values based on "surrounding"
+    }
+
     C[x + arrayWidth * y] = (A[x + arrayWidth * y] + B[x + arrayWidth * y]);
 }
