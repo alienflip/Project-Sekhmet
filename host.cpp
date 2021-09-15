@@ -260,7 +260,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("\n");
     printf("out:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     clFinish(ocl.commandQueue);
     free(inputA);
