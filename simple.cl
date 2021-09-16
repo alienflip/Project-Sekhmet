@@ -1,4 +1,4 @@
-constant int arrayWidth = 32;
+constant int arrayWidth = 16;
 __kernel void Add(__global int* A, __global int* B, __global float* averages, __global int* C){
     const int x = get_global_id(0);
     const int y = get_global_id(1);
