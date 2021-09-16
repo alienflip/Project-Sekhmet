@@ -209,7 +209,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
     // arrayWidth and arrayHeight must be powers of two
-    cl_uint arrayWidth = 32;
+    cl_uint arrayWidth = 16;
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
