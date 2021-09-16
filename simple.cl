@@ -27,11 +27,12 @@ __kernel void Add(__global int* A, __global int* B, __global float* averages, __
     if (ave_vy > 0.5) steer_y += 1;
     if (ave_vy < -0.5) steer_y -= 1; 
     
+    //if(x + arrayWidth * y == 20)
     for (int j = -1; j <= 1; j++) {
-        printf("\n");
         for (int i = -4; i <= 7; i++) {
             printf("%d ", ((x + i) + ((y + j) * arrayWidth)));
         }
+        printf("\n");
     }
 
     //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
