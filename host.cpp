@@ -213,10 +213,12 @@ int _tmain(int argc, TCHAR* argv[]) {
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
+    // opencl setup
     SetupOpenCL(&ocl, deviceType);
     CreateAndBuildProgram(&ocl);
     ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
 
+    // problem variables
     cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
     cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
     cl_float* averagesArray = (cl_float*)malloc(sizeof(float) * 4);
@@ -226,7 +228,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     generateInput__(averagesArray);
 
     ///
-    /// main program: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu etc
+    /// main solution: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu etc
     ///
 
     printf("in:\n\n");
@@ -235,7 +237,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("averages:\n\n");
 
-    int iteration_count = 10;
+    int iteration_count = 3;
 
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
@@ -248,9 +250,10 @@ int _tmain(int argc, TCHAR* argv[]) {
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
 
-        // averages
+        // adjust averages from previous buffer
         calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
 
+        // for output readability
         printf("\n");
     }
 
@@ -267,6 +270,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     free(inputB);
     free(outputC);
 
+    // print benchmarking results
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
     printf("\nsuccess: execution time %f ms.\n\n",
