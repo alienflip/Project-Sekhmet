@@ -20,19 +20,19 @@ struct ocl_args_d_t {
     ocl_args_d_t();
     ~ocl_args_d_t();
 
-    cl_context       context;           
-    cl_device_id     device;            
-    cl_command_queue commandQueue;      
-    cl_program       program;           
-    cl_kernel        kernel;            
-    float            platformVersion;   
-    float            deviceVersion;     
-    float            compilerVersion;   
+    cl_context       context;
+    cl_device_id     device;
+    cl_command_queue commandQueue;
+    cl_program       program;
+    cl_kernel        kernel;
+    float            platformVersion;
+    float            deviceVersion;
+    float            compilerVersion;
 
-    cl_mem           srcA;             
-    cl_mem           srcB;            
-    cl_mem           averages;         
-    cl_mem           dstMem;            
+    cl_mem           srcA;
+    cl_mem           srcB;
+    cl_mem           averages;
+    cl_mem           dstMem;
 };
 ocl_args_d_t::ocl_args_d_t() :
     context(NULL),
@@ -77,11 +77,11 @@ cl_platform_id FindOpenCLPlatform(const char* preferredPlatform, cl_device_type 
     if (0 == numPlatforms) return NULL;
     std::vector<cl_platform_id> platforms(numPlatforms);
     clGetPlatformIDs(numPlatforms, &platforms[0], NULL);
-    for (cl_uint i = 0; i < numPlatforms; i++){
+    for (cl_uint i = 0; i < numPlatforms; i++) {
         bool match = true;
         cl_uint numDevices = 0;
         if ((NULL != preferredPlatform) && (strlen(preferredPlatform) > 0)) CheckPreferredPlatformMatch(platforms[i], preferredPlatform);
-        if (match){
+        if (match) {
             clGetDeviceIDs(platforms[i], deviceType, 0, NULL, &numDevices);
             if (0 != numDevices) return platforms[i];
         }
@@ -128,7 +128,7 @@ void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType) {
     ocl->context = clCreateContextFromType(contextProperties, deviceType, NULL, NULL, &err);
     err = clGetContextInfo(ocl->context, CL_CONTEXT_DEVICES, sizeof(cl_device_id), &ocl->device, NULL);
     GetPlatformAndDeviceVersion(platformId, ocl);
-    if (OPENCL_VERSION_2_0 == ocl->deviceVersion){
+    if (OPENCL_VERSION_2_0 == ocl->deviceVersion) {
         const cl_command_queue_properties properties[] = { CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0 };
         ocl->commandQueue = clCreateCommandQueueWithProperties(ocl->context, ocl->device, properties, &err);
     }
@@ -190,9 +190,9 @@ void calculateAverages(float* averagesArray, cl_int* inputA, int arrayHeight, in
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for(int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputA[i];
+        for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputA[i];
     }
-    for(i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
+    for (i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -209,7 +209,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 
     // arrayWidth and arrayHeight must be powers of two
-    cl_uint arrayWidth = 64;    
+    cl_uint arrayWidth = 32;
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
@@ -230,7 +230,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("in:\n\n");
-    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
     printf("\n");
 
     printf("averages:\n\n");
@@ -244,12 +244,14 @@ int _tmain(int argc, TCHAR* argv[]) {
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-        
+
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
-        
+
         // averages
         calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
+
+        printf("\n");
     }
 
     ///
@@ -258,7 +260,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("\n");
     printf("out:\n\n");
-    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
 
     clFinish(ocl.commandQueue);
     free(inputA);
@@ -267,7 +269,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nsuccess: execution time %f ms.\n\n", 
+    printf("\nsuccess: execution time %f ms.\n\n",
         1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
 
     return 0;
