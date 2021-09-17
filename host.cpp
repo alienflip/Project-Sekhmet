@@ -199,7 +199,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
     // arrayWidth and arrayHeight must be powers of two
-    cl_uint arrayWidth = 16;
+    cl_uint arrayWidth = 1024;
     // each group of 4 pixels wide represents: position x, position y, velocity x, velocity y: in this order
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
