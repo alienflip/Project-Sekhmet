@@ -29,10 +29,9 @@ struct ocl_args_d_t {
     float            deviceVersion;
     float            compilerVersion;
 
-    cl_mem           srcA;
-    cl_mem           srcB;
+    cl_mem           sourceArr;
     cl_mem           averages;
-    cl_mem           dstMem;
+    cl_mem           inputArr;
 };
 ocl_args_d_t::ocl_args_d_t() :
     context(NULL),
@@ -43,20 +42,18 @@ ocl_args_d_t::ocl_args_d_t() :
     platformVersion(OPENCL_VERSION_1_2),
     deviceVersion(OPENCL_VERSION_1_2),
     compilerVersion(OPENCL_VERSION_1_2),
-    srcA(NULL),
-    srcB(NULL),
+    sourceArr(NULL),
     averages(NULL),
-    dstMem(NULL)
+    inputArr(NULL)
 {
 }
 ocl_args_d_t::~ocl_args_d_t() {
     cl_int err = CL_SUCCESS;
     if (kernel) err = clReleaseKernel(kernel);
     if (program) err = clReleaseProgram(program);
-    if (srcA) err = clReleaseMemObject(srcA);
-    if (srcB) err = clReleaseMemObject(srcB);
+    if (sourceArr) err = clReleaseMemObject(sourceArr);
     if (averages) err = clReleaseMemObject(averages);
-    if (dstMem) err = clReleaseMemObject(dstMem);
+    if (inputArr) err = clReleaseMemObject(inputArr);
     if (commandQueue) err = clReleaseCommandQueue(commandQueue);
     if (device) err = clReleaseDevice(device);
 }
@@ -105,20 +102,12 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl) {
 }
 #pragma endregion
 
-#pragma region initialise inputs
-void generateInput(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) {
+void generateInput(cl_int* inputArr, cl_uint arrayWidth, cl_uint arrayHeight) {
     srand(34);
     cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = rand() % 2;
+    // needs to be worked on for latest release
+    for (cl_uint i = 0; i < array_size; ++i) inputArr[i] = rand() % 2;
 }
-void generateInput_(cl_int* inputArray, cl_uint arrayWidth, cl_uint arrayHeight) {
-    cl_uint array_size = arrayWidth * arrayHeight;
-    for (cl_uint i = 0; i < array_size; ++i) inputArray[i] = 0;
-}
-void generateInput__(cl_float* inputArray) {
-    for (cl_uint i = 0; i < 4; i++) inputArray[i] = (cl_float)0.0f;
-}
-#pragma endregion
 
 #pragma region opencl program creation
 void SetupOpenCL(ocl_args_d_t* ocl, cl_device_type deviceType) {
@@ -162,21 +151,18 @@ void CreateAndBuildProgram(ocl_args_d_t* ocl) {
 #pragma endregion
 
 #pragma region kernel handling
-void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputA, cl_int* inputB, cl_float* averagesInput, cl_int* outputC, cl_uint arrayWidth, cl_uint arrayHeight) {
+void CreateBufferArguments(ocl_args_d_t* ocl, cl_int* inputArr, cl_float* averagesInput, cl_int* outArr, cl_uint arrayWidth, cl_uint arrayHeight) {
     unsigned int size = arrayHeight * arrayWidth;
-    ocl->srcA = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputA, NULL);
-    ocl->srcB = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputB, NULL);
+    ocl->sourceArr = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), inputArr, NULL);
     ocl->averages = clCreateBuffer(ocl->context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 4 * sizeof(float), averagesInput, NULL);
-    clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcA, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
-    clEnqueueWriteBuffer(ocl->commandQueue, ocl->srcB, CL_TRUE, 0, size * sizeof(int), inputB, 0, NULL, NULL);
+    clEnqueueWriteBuffer(ocl->commandQueue, ocl->sourceArr, CL_TRUE, 0, size * sizeof(int), inputArr, 0, NULL, NULL);
     clEnqueueWriteBuffer(ocl->commandQueue, ocl->averages, CL_TRUE, 0, 4 * sizeof(float), averagesInput, 0, NULL, NULL);
-    ocl->dstMem = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outputC, NULL);
+    ocl->inputArr = clCreateBuffer(ocl->context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(int), outArr, NULL);
 }
 void SetKernelArguments(ocl_args_d_t* ocl) {
-    clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->srcA);
-    clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->srcB);
-    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->averages);
-    clSetKernelArg(ocl->kernel, 3, sizeof(cl_mem), (void*)&ocl->dstMem);
+    clSetKernelArg(ocl->kernel, 0, sizeof(cl_mem), (void*)&ocl->sourceArr);
+    clSetKernelArg(ocl->kernel, 1, sizeof(cl_mem), (void*)&ocl->averages);
+    clSetKernelArg(ocl->kernel, 2, sizeof(cl_mem), (void*)&ocl->inputArr);
 }
 void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
     size_t global_item_size = width * height;
@@ -186,11 +172,12 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
-void calculateAverages(float* averagesArray, cl_int* inputA, int arrayHeight, int arrayWidth) {
+void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputA[i];
+        // needs to be worked on for stable release
+        for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
     }
     for (i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
@@ -210,6 +197,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     // arrayWidth and arrayHeight must be powers of two
     cl_uint arrayWidth = 16;
+    // each group of 4 pixels wide represents: position x, position y, velocity x, velocity y: in this order
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
 
@@ -219,39 +207,37 @@ int _tmain(int argc, TCHAR* argv[]) {
     ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
 
     // problem variables
-    cl_int* inputA = (cl_int*)malloc(sizeof(int) * size);
-    cl_int* inputB = (cl_int*)malloc(sizeof(int) * size);
+    cl_int* inputArr = (cl_int*)malloc(sizeof(int) * size);
     cl_float* averagesArray = (cl_float*)malloc(sizeof(float) * 4);
-    cl_int* outputC = (cl_int*)malloc(sizeof(int) * size);
-    generateInput(inputA, arrayWidth, arrayHeight);
-    generateInput_(inputB, arrayWidth, arrayHeight);
-    generateInput__(averagesArray);
+    cl_int* outArr = (cl_int*)malloc(sizeof(int) * size);
+    generateInput(inputArr, arrayWidth, arrayHeight);
+    calculateAverages(averagesArray, inputArr, arrayWidth, arrayHeight);
 
     ///
     /// main solution: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu etc
     ///
 
     printf("in:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n");
 
     printf("averages:\n\n");
 
-    int iteration_count = 3;
+    int iteration_count = 1;
 
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
-        CreateBufferArguments(&ocl, inputA, inputB, averagesArray, outputC, arrayWidth, arrayHeight);
+        CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
 
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
 
         // read kernel outputs back into host buffer
-        clEnqueueReadBuffer(ocl.commandQueue, ocl.dstMem, CL_TRUE, 0, size * sizeof(int), inputA, 0, NULL, NULL);
+        clEnqueueReadBuffer(ocl.commandQueue, ocl.inputArr, CL_TRUE, 0, size * sizeof(int), inputArr, 0, NULL, NULL);
 
         // adjust averages from previous buffer
-        calculateAverages(averagesArray, inputA, arrayHeight, arrayWidth);
+        calculateAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
 
         // for output readability
         printf("\n");
@@ -263,12 +249,11 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("\n");
     printf("out:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputA[k]);
+    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
 
     clFinish(ocl.commandQueue);
-    free(inputA);
-    free(inputB);
-    free(outputC);
+    free(inputArr);
+    free(outArr);
 
     // print benchmarking results
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
