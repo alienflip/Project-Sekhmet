@@ -1,12 +1,5 @@
 # Sekhmet
 
-Let's go!
-
-GPU shennanigans with NVIDIA configured openCL.
-
-Boids using openCL
-
-
 ### idea:
 
 We have an array of data: it represents the location of a pixel.
