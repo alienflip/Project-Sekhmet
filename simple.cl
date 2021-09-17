@@ -24,7 +24,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
     if (ave_vy > 0.5) steer[3] += 1;
     if (ave_vy < -0.5) steer[3] -= 1;
     
-    // calculate next frames
+    // calculate next frame
     int idx = x + arrayWidth * y;
     if (idx % 4 == 0) {
         int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol, ax, ay, avx, avy;
