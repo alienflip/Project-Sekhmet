@@ -15,7 +15,7 @@ Each pixel therefore has a position (x, y).
 
 Additionally, we have a velocity attached to each data-point. This represents whether or not the pixel will transfer state to another pixel in it's vicinity.
 
-This means that the array looks like:
+This means that an array of 4 by 4 pixels looks like:
 
 (....)(....)(....)(....)
 
@@ -24,6 +24,8 @@ This means that the array looks like:
 (....)(....)(....)(....)
 
 (....)(....)(....)(....)
+
+In the program.
 
 And so each row of an array actually represents rowWidth / 4 pixels in reality, since the we will be working modulo 4 as pixels need 4 data points to represent themselves.
 
