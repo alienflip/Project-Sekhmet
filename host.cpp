@@ -219,7 +219,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("in:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n");
 
     printf("averages:\n\n");
@@ -250,7 +250,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("\n");
     printf("out:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
 
     clFinish(ocl.commandQueue);
     free(inputArr);
