@@ -102,6 +102,7 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl) {
 }
 #pragma endregion
 
+// ~~~~ todo
 void generateInput(cl_int* inputArr, cl_uint arrayWidth, cl_uint arrayHeight) {
     srand(34);
     cl_uint array_size = arrayWidth * arrayHeight;
@@ -172,11 +173,11 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
+// ~~~~ todo
 void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        // needs to be worked on for stable release
         for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
     }
     for (i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
