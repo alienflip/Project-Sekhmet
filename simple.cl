@@ -54,17 +54,6 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
         }
     }
     
-    //prints x indicies % 4 == 0, and y indicies in rows above and below corresponding
-
-    //printf("A[%d] + B[%d] = %d\n", x + arrayWidth * y, x + arrayWidth * y,  A[x + arrayWidth * y]  +  B[x + arrayWidth * y]);
-
-    // boids output calcs
-    /*
-    for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for (int j = 0; j < 4; j++) if ((i + j) % 4) C[j] = surrounding[j]; // calculate C values based on "surrounding"
-    }
-    */
-
     // placeholder
     C[x + arrayWidth * y] = 0;
 }
