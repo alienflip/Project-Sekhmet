@@ -26,7 +26,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
     
     // calculate next frame
     int idx = x + arrayWidth * y;
-    if (idx % 4 == 0) {
+    if (idx == 0) {
         int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol, ax, ay, avx, avy;
         for (int j = -1; j <= 1; j++) {
             for (int i = -4; i <= 4; i = i + 4) {
@@ -38,9 +38,23 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
                 minCol = currCol;
                 maxCol = minCol + arrayHeight * arrayWidth;
                 if(currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol){
-                    for (int k = 0; k < 4; k++) C[currIdx + k] += A[currIdx + k] + steer[k];
+                    for (int k = 0; k < 4; k++) steer[k] += (float)A[currIdx + k] + (float)averages[k];
                 }
             }
         }
+    }
+    switch (idx % 4) {
+    case 0:
+        C[idx] = steer[0];
+        break;
+    case 1:
+        C[idx] = steer[1];
+        break;
+    case 2:
+        C[idx] = steer[2];
+        break;
+    case 3:
+        C[idx] = steer[3];
+        break;
     }
 }
