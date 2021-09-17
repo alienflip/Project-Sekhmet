@@ -19,7 +19,6 @@
 struct ocl_args_d_t {
     ocl_args_d_t();
     ~ocl_args_d_t();
-
     cl_context       context;
     cl_device_id     device;
     cl_command_queue commandQueue;
@@ -28,7 +27,6 @@ struct ocl_args_d_t {
     float            platformVersion;
     float            deviceVersion;
     float            compilerVersion;
-
     cl_mem           sourceArr;
     cl_mem           averages;
     cl_mem           inputArr;
@@ -184,29 +182,31 @@ void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, 
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
-
-    // performance analysis
+    ///
+    /// performance analysis
+    ///
+    
     LARGE_INTEGER perfFrequency;
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
     bool queueProfilingEnable = true;
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStart);
 
-    // setup
+    ///
+    /// main program start
+    ///
+    
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
-
     // arrayWidth and arrayHeight must be powers of two
     cl_uint arrayWidth = 16;
     // each group of 4 pixels wide represents: position x, position y, velocity x, velocity y: in this order
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
-
     // opencl setup
     SetupOpenCL(&ocl, deviceType);
     CreateAndBuildProgram(&ocl);
     ocl.kernel = clCreateKernel(ocl.program, "Add", NULL);
-
     // problem variables
     cl_int* inputArr = (cl_int*)malloc(sizeof(int) * size);
     cl_float* averagesArray = (cl_float*)malloc(sizeof(float) * 4);
@@ -215,31 +215,24 @@ int _tmain(int argc, TCHAR* argv[]) {
     calculateAverages(averagesArray, inputArr, arrayWidth, arrayHeight);
 
     ///
-    /// main solution: multiple data instantiations sent to GPU, braught back to cpu, sent back to gpu etc
+    /// technical solution
     ///
 
     printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n");
-
     printf("averages:\n\n");
-
     int iteration_count = 1;
-
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
-
         // execute kernel
         SetKernelArguments(&ocl);
         ExecuteAddKernel(&ocl, arrayWidth, arrayHeight);
-
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.inputArr, CL_TRUE, 0, size * sizeof(int), inputArr, 0, NULL, NULL);
-
         // adjust averages from previous buffer
         calculateAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
-
         // for output readability
         printf("\n");
     }
@@ -251,16 +244,18 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("\n");
     printf("out:\n\n");
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
-
+    // finish program
     clFinish(ocl.commandQueue);
     free(inputArr);
     free(outArr);
 
-    // print benchmarking results
+    ///
+    /// print benchmarking results
+    ///
+    
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
     printf("\nsuccess: execution time %f ms.\n\n",
         1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
-
     return 0;
 }
