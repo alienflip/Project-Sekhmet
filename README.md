@@ -18,8 +18,11 @@ Additionally, we have a velocity attached to each data-point. This represents wh
 This means that the array looks like:
 
 (....)(....)(....)(....)
+
 (....)(....)(....)(....)
+
 (....)(....)(....)(....)
+
 (....)(....)(....)(....)
 
 And so each row of an array actually represents rowWidth / 4 pixels in reality, since the we will be working modulo 4 as pixels need 4 data points to represent themselves.
