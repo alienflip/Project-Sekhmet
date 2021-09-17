@@ -48,7 +48,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
                 currRow = (int) currIdx / arrayWidth;
                 minRow = currRow * arrayWidth;
                 maxRow = minRow + arrayWidth;
-                currCol = currIdx / 4;
+                currCol = (int) currIdx / (4*i);
                 minCol = currCol * 4;
                 maxCol = minCol + arrayHeight * arrayWidth;
                 printf("(idx: %d row: %d, col: %d )", currIdx, currRow, currCol);
