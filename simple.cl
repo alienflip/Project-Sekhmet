@@ -39,22 +39,19 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
     */
 
     int idx = x + arrayWidth * y;
-
-    if (idx == 0) {
+    if (idx == 20) {
         int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol;
         for (int j = -1; j <= 1; j++) {
             for (int i = -4; i <= 4; i = i + 4) {
-                currIdx = idx + 4 * j + i + j * arrayWidth;
-                currRow = (int) currIdx / arrayWidth;
+                currIdx = idx + i + j * arrayWidth;
+                currRow = j + (int) idx / arrayWidth;
                 minRow = currRow * arrayWidth;
                 maxRow = minRow + arrayWidth;
-                currCol = (int) currIdx / (4*i);
-                minCol = currCol * 4;
+                currCol = (idx + i) % arrayWidth;
+                minCol = currCol;
                 maxCol = minCol + arrayHeight * arrayWidth;
-                printf("(idx: %d row: %d, col: %d )", currIdx, currRow, currCol);
-                if(currIdx >= minRow && currIdx >= minCol && currIdx <= maxRow && currIdx <= maxCol){
-                    //printf("(%d ) ", currIdx);
-                    continue;
+                if(currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol){
+                    printf("(%d ) ", currIdx);
                 }
             }
             printf("\n");
