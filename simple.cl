@@ -1,5 +1,5 @@
 // ~~~~ todo
-constant int arrayWidth = 16;
+constant int arrayWidth = 1024;
 __kernel void Add(__global int* A, __global float* averages, __global int* C){
     // kernel indexing
     const int x = get_global_id(0);
