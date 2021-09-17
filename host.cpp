@@ -222,7 +222,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n");
     printf("averages:\n\n");
-    int iteration_count = 100;
+    int iteration_count = 10000;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
