@@ -23,5 +23,3 @@ In the program.
 And so each row of an array actually represents rowWidth / 4 pixels in reality, since the we will be working modulo 4 as pixels need 4 data points to represent themselves.
 
 Using openCL, we can take advantage of massive parrellelism in order to do boid calculations (https://en.wikipedia.org/wiki/Boids) on local pixels, and then use global space to keep track of the averagees of the whole group.
-
-With 2048 x 2048 pixels and 10000 iterations, the execution time of the program is 
