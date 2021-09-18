@@ -101,16 +101,17 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl) {
 #pragma endregion
 
 void generateInput(cl_int* inputArr, cl_uint arrayWidth, cl_uint arrayHeight) {
-    srand(34);
+    srand(67);
+    cl_uint pm;
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i) {
-        int pm = rand() % 2;
+        pm = rand() % 2;
         switch (pm) {
         case 0:
-            inputArr[i] = -rand() % 2;
+            inputArr[i] = pm;
             break;
         case 1:
-            inputArr[i] = rand() % 2;
+            inputArr[i] = -pm;
             break;
         }
         
@@ -184,9 +185,9 @@ void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, 
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for (int j = 2; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
+        for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
     }
-    for (i = 2; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
+    for (i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -227,9 +228,9 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("in:\n\n");
-    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
     printf("\n");
-    int iteration_count = 3;
+    int iteration_count = 100;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
@@ -247,7 +248,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("out:\n\n");
-    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
     printf("\n");
     // finish program
     clFinish(ocl.commandQueue);
