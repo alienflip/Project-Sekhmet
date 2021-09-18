@@ -185,7 +185,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
     /// performance analysis
     ///
-    
+
     LARGE_INTEGER perfFrequency;
     LARGE_INTEGER performanceCountNDRangeStart;
     LARGE_INTEGER performanceCountNDRangeStop;
@@ -195,7 +195,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
     /// main program start
     ///
-    
+
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
     // arrayWidth and arrayHeight must be powers of two
@@ -238,9 +238,9 @@ int _tmain(int argc, TCHAR* argv[]) {
     /// finish main program, print benchmarking
     ///
 
-    printf("\n");
     printf("out:\n\n");
     //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    printf("\n\n");
     // finish program
     clFinish(ocl.commandQueue);
     free(inputArr);
@@ -249,9 +249,9 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
     /// print benchmarking results
     ///
-    
+
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    printf("success: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
     return 0;
 }
