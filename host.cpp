@@ -184,14 +184,13 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
-// ~~~ todo: decide on average calcs
-void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
+void calculateGlobalAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
     for (i = 0; i < arrayHeight * arrayWidth; i++) {
-        for (int j = 0; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
+        for (int j = 2; j < 4; j++) if ((i + j) % 4) averagesArray[j] += (float)inputArr[i];
     }
-    for (i = 0; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
+    for (i = 2; i < 4; i++) averagesArray[i] = averagesArray[i] / (arrayHeight * arrayWidth);
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
@@ -226,7 +225,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     cl_float* averagesArray = (cl_float*)malloc(sizeof(float) * 4);
     cl_int* outArr = (cl_int*)malloc(sizeof(int) * size);
     generateInput(inputArr, arrayWidth, arrayHeight);
-    calculateAverages(averagesArray, inputArr, arrayWidth, arrayHeight);
+    calculateGlobalAverages(averagesArray, inputArr, arrayWidth, arrayHeight);
 
     ///
     /// solution
@@ -246,7 +245,7 @@ int _tmain(int argc, TCHAR* argv[]) {
         // read kernel outputs back into host buffer
         clEnqueueReadBuffer(ocl.commandQueue, ocl.inputArr, CL_TRUE, 0, size * sizeof(int), inputArr, 0, NULL, NULL);
         // adjust averages from previous buffer
-        calculateAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
+        calculateGlobalAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
         // debug
         for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
         printf("\n\n");
