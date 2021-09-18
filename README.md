@@ -24,4 +24,4 @@ And so each row of an array actually represents rowWidth / 4 pixels in reality, 
 
 Using openCL, we can take advantage of massive parrellelism in order to do boid calculations (https://en.wikipedia.org/wiki/Boids) on local pixels, and then use global space to keep track of the averagees of the whole group.
 
-####:::
+#### :::
