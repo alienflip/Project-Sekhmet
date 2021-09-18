@@ -33,7 +33,6 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     // steer based on local velocities
     int steer_local[4] = { A[idx], 0, 0, 0 };
     int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol;
-    if(idx == 3)
     for (int j = -1; j <= 1; j++) {
         for (int i = -4; i <= 4; i = i + 4) {
             currIdx = idx + i + j * arrayWidth;
