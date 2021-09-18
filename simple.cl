@@ -53,9 +53,9 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
         }
     }
 
-    // ~~~ averages movement todo
+    // ~~~ todo: averages movement
 
-    // calculate next frame
+    // calculate next frame (placeholder)
     int out_ = idx % 4;
     switch (out_) {
     case 0: // switch alive cell to dead cell
