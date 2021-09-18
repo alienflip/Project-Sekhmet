@@ -194,6 +194,7 @@ void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, 
 }
 
 int _tmain(int argc, TCHAR* argv[]) {
+    
     ///
     /// performance analysis
     ///
@@ -227,7 +228,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     calculateAverages(averagesArray, inputArr, arrayWidth, arrayHeight);
 
     ///
-    /// technical solution
+    /// solution
     ///
 
     printf("in:\n\n");
