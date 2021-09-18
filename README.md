@@ -1,6 +1,7 @@
 # Sekhmet
 
-#### idea:::
+#### idea
+#### :::
 
 We have an array of data: it represents the location of a pixel with some other data attached:
 
