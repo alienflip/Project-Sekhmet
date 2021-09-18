@@ -1,6 +1,7 @@
 // ~~~~ todo: rebound criteria
 
-/* array structure
+/*
+array structure
 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
@@ -26,9 +27,9 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     // steer based on global boid averages
     int steer_global[4] = { A[idx], 0, 0, 0 };
     if (ave_vx > 0.5) steer_global[2] = 1;
-    if (ave_vx < -0.5) steer_global[2] = -1;
+    else if (ave_vx < -0.5) steer_global[2] = -1;
     if (ave_vy > 0.5) steer_global[3] = 1;
-    if (ave_vy < -0.5) steer_global[3] = -1;
+    else if (ave_vy < -0.5) steer_global[3] = -1;
 
     // steer based on local velocities
     int steer_local[4] = { A[idx], 0, 0, 0 };
@@ -45,10 +46,10 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
             if (currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol && idx != currIdx) {
                 switch (currIdx) {
                 case 2:
-                    steer_local[currIdx] += A[currIdx];
+                    steer_local[currIdx] += steer_global[currIdx];
                     break;
                 case 3:
-                    steer_local[currIdx] += A[currIdx];
+                    steer_local[currIdx] += steer_global[currIdx];
                     break;
                 }
             }
