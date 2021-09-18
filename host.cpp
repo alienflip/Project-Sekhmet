@@ -184,7 +184,7 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
-// ~~~ todo
+// ~~~ todo: decide on average calcs
 void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
