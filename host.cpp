@@ -232,7 +232,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
-    printf("\n");
+    printf("\n\n");
     int iteration_count = 3;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
@@ -246,7 +246,7 @@ int _tmain(int argc, TCHAR* argv[]) {
         calculateAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
         // debug
         for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
-        printf("\n");
+        printf("\n\n");
     }
 
     ///
@@ -255,7 +255,7 @@ int _tmain(int argc, TCHAR* argv[]) {
 
     printf("out:\n\n");
     for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
-    printf("\n");
+    printf("\n\n");
     // finish program
     clFinish(ocl.commandQueue);
     free(inputArr);
