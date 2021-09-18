@@ -43,6 +43,8 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
             }
         }
     }
+    
+    // calculate next frame
     switch (idx % 4) {
     case 0: // switch alive cell to dead cell
         if (steer[1] > 0 || steer[2] > 0) {
