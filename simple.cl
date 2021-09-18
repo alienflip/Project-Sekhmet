@@ -26,7 +26,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
     
     // steer based on local velocities
     int idx = x + arrayWidth * y;
-    if (idx == 0) {
+    if (idx % 4 == 0) {
         int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol, ax, ay, avx, avy;
         for (int j = -1; j <= 1; j++) {
             for (int i = -4; i <= 4; i = i + 4) {
