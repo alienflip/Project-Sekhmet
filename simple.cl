@@ -5,6 +5,9 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     const int x = get_global_id(0);
     const int y = get_global_id(1);
 
+    // array index
+    int idx = x + arrayWidth * y;
+
     const int arrayHeight = arrayWidth / 4;
 
     // boids rules
@@ -14,15 +17,11 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     float ave_vy = averages[3];
 
     // steer based on global boid averages
-    int steer[4] = { 0,0,0,0 };
-    if (ave_x > 0.5) steer[0] += 1;
-    if (ave_x < -0.5) steer[0] -= 1;
-    if (ave_y > 0.5) steer[1] += 1;
-    if (ave_y < -0.5) steer[1] -= 1;
-    if (ave_vx > 0.5) steer[2] += 1;
-    if (ave_vx < -0.5) steer[2] -= 1;
-    if (ave_vy > 0.5) steer[3] += 1;
-    if (ave_vy < -0.5) steer[3] -= 1;
+    int steer_global[4] = { A[idx], 0, 0, 0 };
+    if (ave_vx > 0.5) steer_global[2] += 1;
+    if (ave_vx < -0.5) steer_global[2] -= 1;
+    if (ave_vy > 0.5) steer_global[3] += 1;
+    if (ave_vy < -0.5) steer_global[3] -= 1;
 
     /*
     0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
@@ -32,7 +31,8 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     */
 
     // steer based on local velocities
-    int idx = x + arrayWidth * y;
+    int steer_local[4] = { A[idx], 0, 0, 0 };
+
     int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol;
     for (int j = -1; j <= 1; j++) {
         for (int i = -4; i <= 4; i = i + 4) {
@@ -44,33 +44,27 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
             minCol = currCol;
             maxCol = minCol + arrayHeight * arrayWidth;
             if (currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol) {
-                for (int k = 2; k < 4; k++) steer[k] -= (float)A[currIdx + k];
+                //for (int k = 2; k < 4; k++) steer[k] -= (float)A[currIdx + k];
+                printf("%d ", currIdx);
             }
         }
+        printf("\n");
     }
 
     // calculate next frame
-    switch (idx % 4) {
+    int out_ = idx % 4;
+    switch (out_) {
     case 0: // switch alive cell to dead cell
-        if (steer[1] > 0 || steer[2] > 0) {
-            switch (A[idx]) {
-            case 0:
-                C[idx] = 1;
-                break;
-            case 1:
-                C[idx] = 0;
-                break;
-            }
-        }
+        C[idx] = steer_local[0];
         break;
     case 1: // handle rebound velocity switch
-        C[idx] = A[idx];
+        C[idx] = steer_local[1];
         break;
     case 2: // adjust next velocity
-        C[idx] = steer[2];
+        C[idx] = steer_local[2];
         break;
     case 3: // adjust next velocity
-        C[idx] = steer[3];
+        C[idx] = steer_local[3];
         break;
     }
 }
