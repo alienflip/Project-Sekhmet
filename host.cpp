@@ -199,8 +199,8 @@ int _tmain(int argc, TCHAR* argv[]) {
     ocl_args_d_t ocl;
     cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
     // arrayWidth and arrayHeight must be powers of two
-    cl_uint arrayWidth = 4096;
-    // each group of 4 pixels wide represents: position x, position y, velocity x, velocity y: in this order
+    cl_uint arrayWidth = 16;
+    // each group of 4 pixels wide represents: isAlive, willRebound, velocity x, velocity y: in this order
     cl_uint arrayHeight = arrayWidth / 4;
     cl_int size = arrayHeight * arrayWidth;
     // opencl setup
@@ -255,7 +255,6 @@ int _tmain(int argc, TCHAR* argv[]) {
     
     if (queueProfilingEnable) QueryPerformanceCounter(&performanceCountNDRangeStop);
     if (queueProfilingEnable) QueryPerformanceFrequency(&perfFrequency);
-    printf("\nsuccess: execution time %f ms.\n\n",
-        1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
+    printf("\nsuccess: execution time %f ms.\n\n", 1000.0f * (float)(performanceCountNDRangeStop.QuadPart - performanceCountNDRangeStart.QuadPart) / (float)perfFrequency.QuadPart);
     return 0;
 }
