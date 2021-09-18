@@ -227,9 +227,9 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("in:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n\n");
-    int iteration_count = 1;
+    int iteration_count = 3;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
@@ -247,7 +247,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     ///
 
     printf("out:\n\n");
-    //for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
+    for (int k = 0; k < size; k++) printf("A[%d]: %d\n", k, inputArr[k]);
     printf("\n\n");
     // finish program
     clFinish(ocl.commandQueue);
