@@ -1,5 +1,5 @@
 // ~~~~ todo
-constant int arrayWidth = 4096;
+constant int arrayWidth = 16;
 __kernel void Add(__global int* A, __global float* averages, __global int* C){
     // kernel indexing
     const int x = get_global_id(0);
@@ -24,7 +24,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
     if (ave_vy > 0.5) steer[3] += 1;
     if (ave_vy < -0.5) steer[3] -= 1;
     
-    // calculate next frame
+    // steer based on local velocities
     int idx = x + arrayWidth * y;
     if (idx == 0) {
         int currIdx, currRow, minRow, maxRow, currCol, minCol, maxCol, ax, ay, avx, avy;
@@ -38,22 +38,31 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C){
                 minCol = currCol;
                 maxCol = minCol + arrayHeight * arrayWidth;
                 if(currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol){
-                    for (int k = 0; k < 4; k++) steer[k] += (float)A[currIdx + k] + (float)averages[k];
+                    for (int k = 2; k < 4; k++) steer[k] += (float)A[currIdx + k] + (float)averages[k];
                 }
             }
         }
     }
     switch (idx % 4) {
-    case 0:
-        C[idx] = steer[0];
+    case 0: // switch alive cell to dead cell
+        if (steer[1] > 0 || steer[2] > 0) {
+            switch (A[idx]) {
+            case 0:
+                C[idx] = 1;
+                break;
+            case 1:
+                C[idx] = 0;
+                break;
+            }
+        }
         break;
-    case 1:
-        C[idx] = steer[1];
+    case 1: // handle rebound velocity switch
+        C[idx] = A[idx];
         break;
-    case 2:
+    case 2: // adjust next velocity
         C[idx] = steer[2];
         break;
-    case 3:
+    case 3: // adjust next velocity
         C[idx] = steer[3];
         break;
     }
