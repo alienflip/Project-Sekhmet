@@ -1,8 +1,8 @@
 # Sekhmet
 
-### idea:
+#### idea:::
 
-We have an array of data: it represents the location of a pixel.
+We have an array of data: it represents the location of a pixel with some other data attached:
 
 Each pixel therefore has a position (x, y).
 
