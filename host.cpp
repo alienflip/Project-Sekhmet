@@ -102,16 +102,19 @@ void GetPlatformAndDeviceVersion(cl_platform_id platformId, ocl_args_d_t* ocl) {
 
 void generateInput(cl_int* inputArr, cl_uint arrayWidth, cl_uint arrayHeight) {
     srand(67);
-    cl_uint pm;
+    int pm;
     cl_uint array_size = arrayWidth * arrayHeight;
     for (cl_uint i = 0; i < array_size; ++i) {
-        pm = rand() % 2;
+        pm = rand() % 3;
         switch (pm) {
         case 0:
-            inputArr[i] = pm;
+            inputArr[i] = -1;
             break;
         case 1:
-            inputArr[i] = -pm;
+            inputArr[i] = 1;
+            break;
+        case 2:
+            inputArr[i] = 0;
             break;
         }
         
