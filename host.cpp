@@ -184,6 +184,7 @@ void ExecuteAddKernel(ocl_args_d_t* ocl, cl_uint width, cl_uint height) {
 }
 #pragma endregion
 
+// ~~~ todo
 void calculateAverages(float* averagesArray, cl_int* inputArr, int arrayHeight, int arrayWidth) {
     int i;
     for (i = 0; i < 4; i++) averagesArray[i] = (float)0.0f;
@@ -234,6 +235,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
     printf("\n\n");
+    printf("changes:\n\n");
     int iteration_count = 3;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
