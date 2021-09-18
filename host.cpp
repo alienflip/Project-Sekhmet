@@ -233,7 +233,7 @@ int _tmain(int argc, TCHAR* argv[]) {
     printf("in:\n\n");
     for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
     printf("\n");
-    int iteration_count = 100;
+    int iteration_count = 3;
     for (int i = 0; i < iteration_count; i++) {
         // take inputs from previous buffer, set them as new buffer
         CreateBufferArguments(&ocl, inputArr, averagesArray, outArr, arrayWidth, arrayHeight);
@@ -244,6 +244,9 @@ int _tmain(int argc, TCHAR* argv[]) {
         clEnqueueReadBuffer(ocl.commandQueue, ocl.inputArr, CL_TRUE, 0, size * sizeof(int), inputArr, 0, NULL, NULL);
         // adjust averages from previous buffer
         calculateAverages(averagesArray, inputArr, arrayHeight, arrayWidth);
+        // debug
+        for (int k = 0; k < size; k++) printf("%d ", inputArr[k]);
+        printf("\n");
     }
 
     ///
