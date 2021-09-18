@@ -1,15 +1,14 @@
 // ~~~~ todo: rebound criteria
 
-/*
-array structure
+/* array structure
 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
-48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63
-*/
-
+48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63*/
 constant int arrayWidth = 16;
+
 __kernel void Add(__global int* A, __global float* averages, __global int* C) {
+    
     // kernel indexing
     const int x = get_global_id(0);
     const int y = get_global_id(1);
@@ -46,10 +45,10 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
             if (currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol && idx != currIdx) {
                 switch (currIdx) {
                 case 2:
-                    steer_local[currIdx] += steer_global[currIdx];
+                    steer_local[currIdx] += A[currIdx];
                     break;
                 case 3:
-                    steer_local[currIdx] += steer_global[currIdx];
+                    steer_local[currIdx] += A[currIdx];
                     break;
                 }
             }
