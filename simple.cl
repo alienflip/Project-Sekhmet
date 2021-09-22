@@ -56,7 +56,6 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
         }
     }
 
-    // weighted steering: relies on local data mainly
     int new_steer[4] = { aliveCell, reboundCell, (int)((steer_local[2] + steer_global[2]) / 2), (int)(( steer_local[3] + steer_global[3]) / 2) };
 
     for (int i = 0; i < 4; i++) C[idx + i] = new_steer[i];
