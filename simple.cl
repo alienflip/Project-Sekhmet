@@ -34,6 +34,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     int aliveCell = A[idx];
     int reboundCell = 0;
     int adjVelX, adjVelY, diffX, diffY, check;
+    
     // ~~~ todo
     for (int j = -1; j <= 1; j++) {
         for (int i = -4; i <= 4; i = i + 4) {
