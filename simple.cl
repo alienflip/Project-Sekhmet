@@ -17,7 +17,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     // array height
     const int arrayHeight = arrayWidth / 4;
 
-    // boids rules
+    // global averages
     float ave_vx = averages[2];
     float ave_vy = averages[3];
 
@@ -34,7 +34,7 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
     int aliveCell = A[idx];
     int reboundCell = 0;
     int adjVelX, adjVelY, diffX, diffY, check;
-    
+
     // ~~~ todo
     for (int j = -1; j <= 1; j++) {
         for (int i = -4; i <= 4; i = i + 4) {
@@ -48,15 +48,17 @@ __kernel void Add(__global int* A, __global float* averages, __global int* C) {
             if (currIdx >= minRow && currIdx >= minCol && currIdx < maxRow && currIdx < maxCol && idx != currIdx) {
                 adjVelX = A[currIdx + 2] * 4;
                 adjVelY = A[currIdx + 3] * 4;
-                diffX = currCol - adjVelX;
-                diffY = currRow - adjVelY;
-                check = (diffX == x) && (diffY == y);
+                diffX = currCol + adjVelX;
+                diffY = currRow + adjVelY;
+                check = (diffX == 0) && (diffY == 0);
                 if (check) aliveCell = 1;
             }
         }
     }
 
-    int new_steer[4] = { aliveCell, reboundCell, (int)((steer_local[2] + steer_global[2]) / 2), (int)(( steer_local[3] + steer_global[3]) / 2) };
+    // steering output
+    int new_steer[4] = { aliveCell, reboundCell, (int)((steer_local[2] + steer_global[2]) / 2), (int)((steer_local[3] + steer_global[3]) / 2) };
 
+    // write to output array
     for (int i = 0; i < 4; i++) C[idx + i] = new_steer[i];
 }
