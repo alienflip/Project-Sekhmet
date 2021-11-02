@@ -2,6 +2,13 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+#include <cassert>
+>>>>>>> f4dd0100ca80a08ac56f20808de3bd38136f7b62
+>>>>>>> cdbe2e2a05d64ec0523da2d8cd31986037918763
 
 void print_vec(std::vector<int>* vec ){
     std::cout << std::endl;
