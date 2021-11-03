@@ -8,12 +8,13 @@ g++ atoms.cpp -o atoms -lpthread
 #include <thread>
 #include <vector>
 
-/*
+
 void print_vec(std::vector<int>* vec ){
     std::cout << std::endl;
     for (auto& el : *vec) std::cout << el << " ";
     std::cout << std::endl;
 }
+/*
 void mutate_vec(std::vector<int>* vec) {
     for(auto& el : *vec) el++;
 }
@@ -23,6 +24,7 @@ int pop(std::vector<int>* vec) {
     return p;
 }
 */
+
 
 /*
 std::atomic<bool> ready (false);
@@ -51,6 +53,7 @@ void print_foo() {
 }
 */
 
+/*
 std::atomic<int> foo (0);
 
 void set_foo(int x) {
@@ -63,6 +66,18 @@ void print_foo() {
         x = foo.load(std::memory_order_relaxed);
     } while(x == 0);
     std::cout << "foo: " << x << std::endl;
+}
+*/
+
+std::atomic<bool> busy (false);
+
+void do_thing(std::vector<int>* inputs, int* out) {
+    while(busy) {std::this_thread::yield();}
+
+    int next = inputs->back();
+    inputs->pop_back();
+
+    out->(+=next);
 }
 
 int main(void) {
@@ -91,10 +106,27 @@ int main(void) {
     second.join();
     */
 
+    /*
     std::thread first (print_foo);
     std::thread second (set_foo, 10);
     first.join();
     second.join();
-    
+    */
+
+    std::vector<int> inputs;
+    for(int i = 0; i < 100; i++) inputs.push_back(rand() % 10);
+
+    // base
+    int k = 0;
+    for(auto& el : inputs) k += el;
+    std::cout << k << std::endl;
+    print_vec(&inputs);
+
+    // threaded
+    std::vector<std::thread> threads;
+    int out = 0;
+    //for(int i = 0; i < 10; i++) threads.push_back(std::thread(do_thing, i));
+
+
     return 0;
 }
