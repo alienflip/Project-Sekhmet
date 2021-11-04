@@ -46,13 +46,12 @@ int main(void) {
         for(int i = 0; i < 100; i++) threads.push_back(std::thread(do_thing, &inputs));
         busy = true;
         for (auto& th : threads) th.join();
+        std::cout << out.load(std::memory_order_relaxed);
+        std::cout << std::endl;
     }
     catch (const std::exception& ex) {
         std::cout << ex.what() << std::endl;
     }
-
-    std::cout << out.load(std::memory_order_relaxed);
-    std::cout << std::endl;
 
     return 0;
 }
