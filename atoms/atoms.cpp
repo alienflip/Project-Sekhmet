@@ -1,20 +1,24 @@
+/*
+g++ atoms.cpp -o atoms -lpthread
+./atoms
+*/
+
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <mutex>
 
-std::atomic<bool> busy (false);
+std::mutex mtx;
+
 std::atomic_int out (0);
 
 void do_thing(std::vector<int>* inputs) {
-    while(!busy) {
-        std::this_thread::yield();
-    }
-
+    mtx.lock();
     int next = inputs->back();
     inputs->pop_back();
-    
-    out.store(out.load(std::memory_order_relaxed) + next, std::memory_order_relaxed);
+    out.store(out.load(std::memory_order_seq_cst) + next, std::memory_order_seq_cst);
+    mtx.unlock();
 }
 
 int main(void) {
@@ -31,9 +35,8 @@ int main(void) {
     try {
         std::vector<std::thread> threads;
         for(int i = 0; i < 100; i++) threads.push_back(std::thread(do_thing, &inputs));
-        busy = true;
         for (auto& th : threads) th.join();
-        std::cout << out.load(std::memory_order_relaxed);
+        std::cout << out.load(std::memory_order_seq_cst);
         std::cout << std::endl;
     }
     catch (const std::exception& ex) {
