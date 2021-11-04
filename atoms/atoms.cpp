@@ -16,8 +16,9 @@ void print_vec(std::vector<int>* vec ){
 }
 
 std::atomic<bool> busy (false);
+std::atomic_int out (0);
 
-void do_thing(std::vector<int>* inputs, int* out) {
+void do_thing(std::vector<int>* inputs) {
     while(!busy) {
         std::this_thread::yield();
     }
@@ -25,7 +26,8 @@ void do_thing(std::vector<int>* inputs, int* out) {
     int next = inputs->back();
     inputs->pop_back();
 
-    (*out)+=next;
+    int out_ = out.load(std::memory_order_relaxed);
+    out.store(out_ + next, std::memory_order_relaxed);
 }
 
 int main(void) {
@@ -38,12 +40,10 @@ int main(void) {
     for(auto& el : inputs) k += el;
     std::cout << k << std::endl;
 
-    int out = 0;
-    
     // threaded
     try {
         std::vector<std::thread> threads;
-        for(int i = 0; i < 10; i++) threads.push_back(std::thread(do_thing, &inputs, &out));
+        for(int i = 0; i < 100; i++) threads.push_back(std::thread(do_thing, &inputs));
         busy = true;
         for (auto& th : threads) th.join();
     }
@@ -51,7 +51,8 @@ int main(void) {
         std::cout << ex.what() << std::endl;
     }
 
-    std::cout << out << std::endl;
+    std::cout << out.load(std::memory_order_relaxed);
+    std::cout << std::endl;
 
     return 0;
 }
