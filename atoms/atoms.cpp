@@ -1,19 +1,7 @@
-/*
-g++ atoms.cpp -o atoms -lpthread
-./atoms
-*/
-
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
-
-
-void print_vec(std::vector<int>* vec ){
-    std::cout << std::endl;
-    for (auto& el : *vec) std::cout << el << " ";
-    std::cout << std::endl;
-}
 
 std::atomic<bool> busy (false);
 std::atomic_int out (0);
