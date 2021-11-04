@@ -25,8 +25,6 @@ void do_thing(std::vector<int>* inputs, int* out) {
     int next = inputs->back();
     inputs->pop_back();
 
-    //std::cout << next << " ";
-
     (*out)+=next;
 }
 
@@ -41,9 +39,9 @@ int main(void) {
     std::cout << k << std::endl;
 
     int out = 0;
-
+    
+    // threaded
     try {
-        // threaded
         std::vector<std::thread> threads;
         for(int i = 0; i < 10; i++) threads.push_back(std::thread(do_thing, &inputs, &out));
         busy = true;
