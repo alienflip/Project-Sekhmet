@@ -25,9 +25,8 @@ void do_thing(std::vector<int>* inputs) {
 
     int next = inputs->back();
     inputs->pop_back();
-
-    int out_ = out.load(std::memory_order_relaxed);
-    out.store(out_ + next, std::memory_order_relaxed);
+    
+    out.store(out.load(std::memory_order_relaxed) + next, std::memory_order_relaxed);
 }
 
 int main(void) {
