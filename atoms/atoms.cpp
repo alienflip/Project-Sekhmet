@@ -17,8 +17,8 @@ void do_thing(std::vector<int>* inputs) {
     mtx.lock();
     int next = inputs->back();
     inputs->pop_back();
-    out.store(out.load(std::memory_order_seq_cst) + next, std::memory_order_seq_cst);
     mtx.unlock();
+    out.store(out.load(std::memory_order_seq_cst) + next, std::memory_order_seq_cst);
 }
 
 int main(void) {
