@@ -16,20 +16,25 @@ int main(void) {
         | std::ifstream::failbit
         | std::ifstream::eofbit);
 
-    file.open(path, std::ifstream::in | std::ifstream::binary);
-    file.seekg(0, std::ios::end);
-    std::streampos length(file.tellg());
-    if (length) {
-        file.seekg(0, std::ios::beg);
-        vec.resize(static_cast<std::size_t>(length));
-        file.read(&vec.front(), static_cast<std::size_t>(length));
+    try {
+        file.open(path, std::ifstream::in | std::ifstream::binary);
+        file.seekg(0, std::ios::end);
+        std::streampos length(file.tellg());
+        if (length) {
+            file.seekg(0, std::ios::beg);
+            vec.resize(static_cast<std::size_t>(length));
+            file.read(&vec.front(), static_cast<std::size_t>(length));
+        }
+
+        std::cout << length << std::endl;
+        std::cout << std::endl;
+        for(auto& el : vec) {
+            std::cout << el;
+        } std::cout << std::endl;
+    }
+    catch (std::ifstream::failure e) {
+        std::cerr << "Exception opening/reading/closing file" << std::endl;
     }
 
-    // check output (size in bytes, elements in vector)
-    std::cout << length << std::endl;
-    std::cout << std::endl;
-    for(auto& el : vec) {
-        std::cout << el;
-    } std::cout << std::endl;
     return 0;
 }
