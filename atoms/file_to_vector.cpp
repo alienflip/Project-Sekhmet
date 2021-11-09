@@ -5,6 +5,8 @@
 int main(void) {
 
     // write data from file into local vector
+    const std::string path = "text.txt";
+
     std::vector<char> vec;
 
     std::ifstream file;
@@ -14,7 +16,7 @@ int main(void) {
         | std::ifstream::failbit
         | std::ifstream::eofbit);
 
-    file.open("text.txt", std::ifstream::in | std::ifstream::binary);
+    file.open(path, std::ifstream::in | std::ifstream::binary);
     file.seekg(0, std::ios::end);
     std::streampos length(file.tellg());
     if (length) {
