@@ -2,20 +2,15 @@
 #include <vector>
 #include <fstream>
 
+const std::string path = "text.txt";
+
 int main(void) {
-
-    // write data from file into local vector
-    const std::string path = "text.txt";
-
     std::vector<char> vec;
-
     std::ifstream file;
-
     file.exceptions(
         std::ifstream::badbit
         | std::ifstream::failbit
         | std::ifstream::eofbit);
-
     try {
         file.open(path, std::ifstream::in | std::ifstream::binary);
         file.seekg(0, std::ios::end);
@@ -25,7 +20,6 @@ int main(void) {
             vec.resize(static_cast<std::size_t>(length));
             file.read(&vec.front(), static_cast<std::size_t>(length));
         }
-
         std::cout << length << std::endl;
         std::cout << std::endl;
         for(auto& el : vec) {
