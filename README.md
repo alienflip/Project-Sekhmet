@@ -1,4 +1,16 @@
-# Sekhmet
+<h1 align="center">
+  <br>
+  Experiments in OpenCL
+  <br>
+</h1>
+
+<p align="center"> <img src="https://img.shields.io/badge/OpenCL-v2-white" > <img src="https://img.shields.io/badge/OpenCL-v1.2-white" > </p>
+
+<p align="center"> :sun_with_face: :sun_with_face:</p>
+
+-----
+-----
+-----
 
 #### idea
 #### :::
