@@ -22,7 +22,7 @@ We have an array of data: it represents the location of a pixel with some other 
 
 Each pixel therefore has a position (x, y).
 
-Additionally, we have a velocity attached to each data-point. This represents whether or not the pixel will transfer state to another pixel in it's vicinity.
+Additionally, we have a `velocity attached to each data-point`. This represents whether or not the pixel will `transfer state` to another pixel in it's vicinity.
 
 This means that an array of 4 by 4 pixels looks like:
 
