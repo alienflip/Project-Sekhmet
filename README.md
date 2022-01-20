@@ -42,6 +42,4 @@ Using openCL, we can take advantage of massive parrellelism in order to do [boid
 
 #### :::
 
-#### atoms
 
-C++ library explorations
